@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="description" content="HRBP 업무 스타일 진단 테스트 — 20문항으로 알아보는 나의 HRBP 유형, 에너지 맵, 팀 조합 분석">
+<meta name="description" content="HRBP 업무 스타일 진단 테스트 — 22문항으로 알아보는 나의 HRBP 유형, 에너지 맵, 팀 조합 분석">
 <meta property="og:title" content="나는 어떤 HRBP일까?">
-<meta property="og:description" content="HRBP 업무 스타일 진단 · 20문항 · 약 5분">
+<meta property="og:description" content="HRBP 업무 스타일 진단 · 22문항 · 약 5분">
 <title>나는 어떤 HRBP일까?</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -87,34 +87,30 @@ const QUESTIONS = [
 ];
 
 const STRENGTH_QUESTIONS = [
-  {id:"SQ1",text:"동료들이 나에게 가장 자주 도움을 요청하는 영역은?",
-    opts:[
-      {v:"strategy",label:"방향 설정·의사결정 조언"},
-      {v:"system",label:"프로세스 설계·데이터 분석"},
-      {v:"people",label:"소통 중재·관계 조율"},
-      {v:"execution",label:"실행 계획·일정 관리"}
-    ]},
-  {id:"SQ2",text:"최근 가장 좋은 성과를 낸 업무의 성격은?",
-    opts:[
-      {v:"strategy",label:"새로운 방향·프레임 제시"},
-      {v:"system",label:"시스템·제도 구축"},
-      {v:"people",label:"관계 개선·조직 분위기 변화"},
-      {v:"execution",label:"정확하고 빠른 업무 처리"}
-    ]},
-  {id:"SQ3",text:"내가 없으면 팀에서 가장 빠지는 역할은?",
-    opts:[
-      {v:"strategy",label:"큰 그림을 그리고 방향을 잡는 역할"},
-      {v:"system",label:"체계를 만들고 기준을 세우는 역할"},
-      {v:"people",label:"사람들을 연결하고 분위기를 잡는 역할"},
-      {v:"execution",label:"일을 확실하게 마무리하는 역할"}
-    ]},
-  {id:"SQ4",text:"내가 리드했을 때 가장 결과가 좋았던 상황은?",
-    opts:[
-      {v:"strategy",label:"불확실한 상황에서 방향을 정해야 했을 때"},
-      {v:"system",label:"복잡한 것을 정리·구조화해야 했을 때"},
-      {v:"people",label:"갈등이나 소통 문제를 해결해야 했을 때"},
-      {v:"execution",label:"한정된 시간 안에 결과를 내야 했을 때"}
-    ]}
+  {left:"strategy",right:"system",
+    text:"복잡한 프로젝트를 맡았을 때, 가장 먼저 하고 싶은 건?",
+    a:"이 프로젝트가 왜 필요한지, 방향부터 정리한다",
+    b:"진행 프로세스와 기준을 먼저 설계한다"},
+  {left:"people",right:"strategy",
+    text:"팀 분위기가 침체되었을 때, 자연스럽게 하게 되는 건?",
+    a:"한 명씩 만나서 요즘 어떤지 이야기를 들어본다",
+    b:"우리가 왜 이 일을 하는지 큰 그림을 다시 이야기해준다"},
+  {left:"execution",right:"strategy",
+    text:"상사가 '이거 한번 맡아봐'라고 했을 때, 먼저 드는 생각은?",
+    a:"언제까지? 바로 계획 짜고 시작하고 싶다",
+    b:"이걸 왜 하는 거지? 목적과 방향부터 확인하고 싶다"},
+  {left:"system",right:"people",
+    text:"새로운 제도를 도입할 때, 더 신경 쓰이는 건?",
+    a:"제도의 논리적 완성도와 공정성",
+    b:"구성원들이 이걸 어떻게 받아들일지"},
+  {left:"execution",right:"system",
+    text:"반복되는 업무 비효율을 발견했을 때?",
+    a:"당장 바꿀 수 있는 부분부터 빠르게 고친다",
+    b:"근본 원인을 분석하고 새로운 프로세스를 설계한다"},
+  {left:"people",right:"execution",
+    text:"프로젝트 마감이 빠듯한 상황에서, 더 신경 쓰이는 건?",
+    a:"팀원들 컨디션과 부담을 먼저 살핀다",
+    b:"남은 일을 쪼개서 바로 역할 배분한다"},
 ];
 
 const T = {
@@ -271,19 +267,20 @@ async function sbLoadResults(teamId){
 }
 
 /* ===== STATE ===== */
-let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[], selectedMember:0,
+const EMPTY_SS={strategy:0,system:0,people:0,execution:0};
+let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthScores:{...EMPTY_SS}, sqIdx:0, userName:"", members:[], selectedMember:0,
   mode:"solo", teamId:null, teamName:"", loading:false, error:null, _teamLoaded:false};
 let skipScroll = false;
 
 /* ===== PERSISTENCE ===== */
 function saveMyResult(){
-  try{localStorage.setItem('hrbp_result',JSON.stringify({userName:state.userName,scores:state.scores,strengthAnswers:state.strengthAnswers}));}catch(e){}
+  try{localStorage.setItem('hrbp_result',JSON.stringify({userName:state.userName,scores:state.scores,strengthScores:state.strengthScores}));}catch(e){}
 }
 function saveTeam(){
   try{localStorage.setItem('hrbp_team',JSON.stringify(state.members));}catch(e){}
 }
 function loadMyResult(){
-  try{const d=JSON.parse(localStorage.getItem('hrbp_result'));if(d&&d.userName){state.userName=d.userName;state.scores=d.scores;state.strengthAnswers=d.strengthAnswers||[];return true;}}catch(e){}return false;
+  try{const d=JSON.parse(localStorage.getItem('hrbp_result'));if(d&&d.userName){state.userName=d.userName;state.scores=d.scores;state.strengthScores=d.strengthScores||{...EMPTY_SS};return true;}}catch(e){}return false;
 }
 function loadTeam(){
   try{const d=JSON.parse(localStorage.getItem('hrbp_team'));if(d&&d.length>0){state.members=d;return true;}}catch(e){}return false;
@@ -330,7 +327,7 @@ function renderIntro(){
   <div class="fade-in" style="text-align:center;padding-top:40px">
     <div style="font-size:56px;margin-bottom:16px">🧭</div>
     <h1 style="font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.5px;margin-bottom:8px">나는 어떤 HRBP일까?</h1>
-    <p style="font-size:15px;color:#6B7280;margin-bottom:28px;line-height:1.6">HRBP 업무 스타일 진단 · 20문항 · 약 5분</p>
+    <p style="font-size:15px;color:#6B7280;margin-bottom:28px;line-height:1.6">HRBP 업무 스타일 진단 · 22문항 · 약 5분</p>
     <div class="card" style="text-align:left">
       <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:18px">20개 질문에 답하면, 나의 HRBP 업무 스타일을 알려드려요.</p>
       ${[["⚡","에너지가 나는 과업 / 깎이는 과업"],["🏆","내가 실제로 잘 발휘하는 강점"],["📋","나와 협업할 때 사용설명서"],["😰","스트레스 시그널 & 회복 방법"],["🤝","팀원별 1:1 소통 가이드"],["📊","과업별 리드/서포트 추천"]].map(([i,t])=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#F9FAFB;border-radius:12px;font-size:14px;color:#374151;margin-bottom:8px"><span style="font-size:18px">${i}</span>${t}</div>`).join("")}
@@ -417,8 +414,8 @@ function renderTeamJoin(){
 
 function renderQuestion(){
   const q=QUESTIONS[state.qIdx];
-  const total=QUESTIONS.length;
-  const pct=((state.qIdx+1)/total)*100;
+  const totalAll=QUESTIONS.length+STRENGTH_QUESTIONS.length;
+  const pct=((state.qIdx+1)/totalAll)*100;
   const colors=["#6C5CE7","#A29BFE","#D1D5DB","#74B9FF","#0984E3"];
   const labels=["확실히 A","약간 A","중립","약간 B","확실히 B"];
   const sizes=[46,34,38,34,46];
@@ -426,7 +423,7 @@ function renderQuestion(){
   app().innerHTML=`
   <div style="margin-top:20px">
     <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${state.qIdx+1} / ${total}</span>
+      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${state.qIdx+1} / ${totalAll}</span>
       <span style="font-size:13px;color:#9CA3AF">${Math.round(pct)}%</span>
     </div>
     <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
@@ -460,29 +457,44 @@ function renderQuestion(){
 
 function renderStrength(){
   const sq=STRENGTH_QUESTIONS[state.sqIdx];
-  const total=STRENGTH_QUESTIONS.length;
+  const totalAll=QUESTIONS.length+STRENGTH_QUESTIONS.length;
   const qNum=QUESTIONS.length+state.sqIdx+1;
-  const pct=((qNum)/(QUESTIONS.length+total))*100;
+  const pct=(qNum/totalAll)*100;
+  const colors=["#6C5CE7","#A29BFE","#D1D5DB","#74B9FF","#0984E3"];
+  const labels=["확실히 A","약간 A","중립","약간 B","확실히 B"];
+  const sizes=[46,34,38,34,46];
 
   app().innerHTML=`
   <div style="margin-top:20px">
     <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${qNum} / ${QUESTIONS.length+total}</span>
+      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${qNum} / ${totalAll}</span>
       <span style="font-size:13px;color:#9CA3AF">${Math.round(pct)}%</span>
     </div>
     <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
       <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6C5CE7,#0984E3);border-radius:3px;transition:width .5s"></div>
     </div>
   </div>
-  <div class="fade-in" style="padding:40px 0 20px">
-    <div style="text-align:center;margin-bottom:8px">
-      <span style="font-size:12px;background:#FFFBEB;color:#92400E;padding:4px 10px;border-radius:8px;font-weight:600">🏆 실제 강점 파악</span>
+  <div class="fade-in" style="padding:40px 0 20px;text-align:center">
+    <h2 style="font-size:18px;font-weight:700;line-height:1.5;margin-bottom:28px">${sq.text}</h2>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:14px;font-size:13px;color:#374151;line-height:1.5;text-align:center">
+        <span style="font-size:11px;color:#6C5CE7;font-weight:700;display:block;margin-bottom:4px">A</span>${sq.a}
+      </div>
+      <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:14px;font-size:13px;color:#374151;line-height:1.5;text-align:center">
+        <span style="font-size:11px;color:#0984E3;font-weight:700;display:block;margin-bottom:4px">B</span>${sq.b}
+      </div>
     </div>
-    <h2 style="font-size:18px;font-weight:700;line-height:1.5;margin-bottom:24px;text-align:center">${sq.text}</h2>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${sq.opts.map((o,i)=>`
-        <button onclick="answerSQ('${o.v}')" style="width:100%;padding:16px 18px;font-size:14px;color:#374151;background:#fff;border:2px solid #E5E7EB;border-radius:14px;cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;line-height:1.5" onmouseover="this.style.borderColor='#6C5CE7';this.style.background='#F9F8FF'" onmouseout="this.style.borderColor='#E5E7EB';this.style.background='#fff'">${o.label}</button>
+    <div class="scale-row">
+      ${[-2,-1,0,1,2].map((v,i)=>`
+        <div class="scale-col">
+          <button class="scale-btn" style="width:${sizes[i]}px;height:${sizes[i]}px" onclick="answerSQ(${v},${i})" onmouseover="this.style.borderColor='${colors[i]}'" onmouseout="this.style.borderColor='#E5E7EB'"></button>
+          <span class="scale-label">${labels[i]}</span>
+        </div>
       `).join("")}
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:0 8px;margin-top:4px">
+      <span style="font-size:12px;color:#6C5CE7;font-weight:600">← A</span>
+      <span style="font-size:12px;color:#0984E3;font-weight:600">B →</span>
     </div>
   </div>`;
 }
@@ -507,11 +519,9 @@ function renderResult(){
   const best=T[t.bestMatch];
   const tension=T[t.tensionMatch];
 
-  // Strength analysis
-  const sCounts={};
-  state.strengthAnswers.forEach(a=>{sCounts[a]=(sCounts[a]||0)+1;});
-  const sortedS=Object.entries(sCounts).sort((a,b)=>b[1]-a[1]);
-  const topStrength=sortedS[0]?strengthMap[sortedS[0][0]]:tk;
+  // Strength analysis (paired comparison scores)
+  const sortedS=Object.entries(state.strengthScores).sort((a,b)=>b[1]-a[1]);
+  const topStrength=strengthMap[sortedS[0][0]]||tk;
   const topStrengthLabel=STRENGTH_LABELS[topStrength];
 
   // Share code
@@ -910,7 +920,7 @@ function selectMember(idx){
 
 /* ===== ACTIONS ===== */
 function startTest(){
-  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[],selectedMember:0,
+  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthScores:{...EMPTY_SS},sqIdx:0,userName:"",members:[],selectedMember:0,
     mode:"solo",teamId:null,teamName:"",loading:false,error:null,_teamLoaded:false};
   render();
 }
@@ -936,11 +946,26 @@ function answerQ(val,btnIdx){
   },450);
 }
 
-function answerSQ(val){
-  state.strengthAnswers.push(val);
-  if(state.sqIdx+1<STRENGTH_QUESTIONS.length){state.sqIdx++;state.screen="strength";}
-  else state.screen="name";
-  render();
+function answerSQ(val,btnIdx){
+  const sq=STRENGTH_QUESTIONS[state.sqIdx];
+  // A(left) ← negative val, B(right) ← positive val
+  state.strengthScores[sq.left]+=-val;
+  state.strengthScores[sq.right]+=val;
+
+  // highlight (same animation as answerQ)
+  const colors=["#6C5CE7","#A29BFE","#D1D5DB","#74B9FF","#0984E3"];
+  const btns=document.querySelectorAll(".scale-btn");
+  btns.forEach(b=>{b.style.pointerEvents="none";});
+  btns[btnIdx].style.background=colors[btnIdx];
+  btns[btnIdx].style.borderColor=colors[btnIdx];
+  btns[btnIdx].style.boxShadow=`0 0 0 4px ${colors[btnIdx]}33`;
+  btns[btnIdx].classList.add("selected");
+
+  setTimeout(()=>{
+    if(state.sqIdx+1<STRENGTH_QUESTIONS.length){state.sqIdx++;state.screen="strength";}
+    else state.screen="name";
+    render();
+  },450);
 }
 
 async function submitName(){
@@ -953,13 +978,14 @@ async function submitName(){
   // Supabase save (optimistic — result screen already shown)
   if(state.mode==="team"&&state.teamId&&sb){
     const tk=typeFromScores(state.scores.SE,state.scores.PT);
+    const rankedS=Object.entries(state.strengthScores).sort((a,b)=>b[1]-a[1]).map(s=>s[0]);
     try{
-      await sbSaveResult(state.teamId,state.userName,state.scores.SE,state.scores.PT,tk,state.strengthAnswers);
+      await sbSaveResult(state.teamId,state.userName,state.scores.SE,state.scores.PT,tk,rankedS);
       saveTeamMembership(state.teamId,state.userName);
       showToast('결과가 팀에 저장됐어요!');
     }catch(e){
       showToast('저장 실패... 다시 시도합니다.');
-      try{await sbSaveResult(state.teamId,state.userName,state.scores.SE,state.scores.PT,tk,state.strengthAnswers);saveTeamMembership(state.teamId,state.userName);showToast('저장 완료!');}
+      try{await sbSaveResult(state.teamId,state.userName,state.scores.SE,state.scores.PT,tk,rankedS);saveTeamMembership(state.teamId,state.userName);showToast('저장 완료!');}
       catch(e2){showToast('저장에 실패했어요. 팀 페이지에서 다시 시도해주세요.');}
     }
   }
@@ -1011,7 +1037,7 @@ function copyInviteLink(){
 
 function startTeamTest(){
   state.screen="questions";state.qIdx=0;state.scores={SE:0,PT:0};
-  state.strengthAnswers=[];state.sqIdx=0;render();
+  state.strengthScores={...EMPTY_SS};state.sqIdx=0;render();
 }
 
 function startTeamTestAsJoiner(){
@@ -1019,7 +1045,7 @@ function startTeamTestAsJoiner(){
   const name=inp?inp.value.trim():'';
   if(!name){inp.style.borderColor='#DC2626';setTimeout(()=>{inp.style.borderColor='#E5E7EB';},2000);return;}
   state.userName=name;state.screen="questions";state.qIdx=0;
-  state.scores={SE:0,PT:0};state.strengthAnswers=[];state.sqIdx=0;render();
+  state.scores={SE:0,PT:0};state.strengthScores={...EMPTY_SS};state.sqIdx=0;render();
 }
 
 function goTeamView(){state._teamLoaded=false;state.screen="team";render();}
