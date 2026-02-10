@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="HRBP 업무 스타일 진단 테스트 — 20문항으로 알아보는 나의 HRBP 유형, 에너지 맵, 팀 조합 분석">
+<meta property="og:title" content="나는 어떤 HRBP일까?">
+<meta property="og:description" content="HRBP 업무 스타일 진단 · 20문항 · 약 5분">
 <title>나는 어떤 HRBP일까?</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#FAFBFF 0%,#F0EDFF 40%,#E8F4FD 70%,#FFF5F2 100%);min-height:100vh;color:#1A1A2E}
@@ -184,6 +189,7 @@ const TYPES=["architect","builder","connector","driver"];
 const typeFromScores=(se,pt)=>(se<=0&&pt<=0)?"architect":(se<=0&&pt>0)?"builder":(se>0&&pt<=0)?"connector":"driver";
 const strengthMap={strategy:"architect",system:"builder",people:"connector",execution:"driver"};
 const STRENGTH_LABELS={architect:"전략·방향 설정",builder:"체계·시스템 구축",connector:"소통·관계 조율",driver:"실행·완수력"};
+const STRENGTH_CODES={strategy:"S",system:"Y",people:"P",execution:"E"};
 
 /* 1:1 Relationship Guide Data */
 const REL_GUIDE = {
@@ -351,7 +357,7 @@ function renderResult(){
   const topStrengthLabel=STRENGTH_LABELS[topStrength];
 
   // Share code
-  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>s[0][0]).join("")}`;
+  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>STRENGTH_CODES[s[0]]).join("")}`;
 
   app().innerHTML=`
   <div class="fade-in">
