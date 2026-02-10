@@ -191,7 +191,7 @@ const TYPES=["architect","builder","connector","driver"];
 const typeFromScores=(se,pt)=>(se<=0&&pt<=0)?"architect":(se<=0&&pt>0)?"builder":(se>0&&pt<=0)?"connector":"driver";
 const strengthMap={strategy:"architect",system:"builder",people:"connector",execution:"driver"};
 const STRENGTH_LABELS={architect:"전략·방향 설정",builder:"체계·시스템 구축",connector:"소통·관계 조율",driver:"실행·완수력"};
-const STRENGTH_CODES={strategy:"S",system:"Y",people:"P",execution:"E"};
+
 
 /* 1:1 Relationship Guide Data */
 const REL_GUIDE = {
@@ -348,7 +348,7 @@ function renderCreateTeam(){
       팀 이름을 입력하면 초대 링크가 생성돼요.<br>
       팀원들이 링크를 통해 테스트하면 결과가 자동으로 모여요.
     </p>
-    <input id="teamNameInput" class="input" placeholder="팀 이름 (예: HR팀)" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')handleCreateTeam()">
+    <input id="teamNameInput" class="input" placeholder="팀 이름 (예: 모비데이즈 HRBP팀)" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')handleCreateTeam()">
     ${state.error?`<p style="font-size:13px;color:#DC2626;margin-bottom:12px">${state.error.message}</p>`:''}
     <button class="btn btn-primary" onclick="handleCreateTeam()" id="createTeamBtn" ${state.loading?'disabled style="opacity:0.6"':''}>
       ${state.loading?'<span class="spinner" style="width:18px;height:18px;border-width:2px;vertical-align:middle;margin-right:8px"></span>팀 생성 중...':'팀 만들기'}
@@ -405,7 +405,7 @@ function renderTeamJoin(){
       이름을 입력하고 테스트를 시작하세요.<br>
       결과는 자동으로 팀에 저장돼요.
     </p>
-    <input id="joinNameInput" class="input" placeholder="이름 (예: 한설)" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')startTeamTestAsJoiner()">
+    <input id="joinNameInput" class="input" placeholder="이름 (예: 김모비)" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')startTeamTestAsJoiner()">
     <button class="btn btn-primary" onclick="startTeamTestAsJoiner()">테스트 시작하기</button>
     <button class="btn btn-secondary" onclick="goTeamViewDirect()" style="margin-top:10px">팀 결과 바로 보기</button>
   </div>`;
@@ -507,7 +507,7 @@ function renderName(){
     <div style="font-size:48px;margin-bottom:16px">✨</div>
     <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">거의 다 됐어요!</h2>
     <p style="font-size:14px;color:#6B7280;margin-bottom:32px">${state.mode==="team"?'팀에 저장할 이름을 입력해주세요':'팀 조합 분석에 사용할 이름을 입력해주세요'}</p>
-    <input id="nameInput" class="input" placeholder="이름 (예: 한설)" value="${state.userName||''}" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')submitName()">
+    <input id="nameInput" class="input" placeholder="이름 (예: 김모비)" value="${state.userName||''}" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')submitName()">
     <button class="btn btn-primary" onclick="submitName()">결과 보기</button>
   </div>`;
   setTimeout(()=>{const inp=$("nameInput");if(inp)inp.focus();},300);
@@ -524,9 +524,6 @@ function renderResult(){
   const topStrength=strengthMap[sortedS[0][0]]||tk;
   const topStrengthLabel=STRENGTH_LABELS[topStrength];
 
-  // Share code
-  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>STRENGTH_CODES[s[0]]).join("")}`;
-
   app().innerHTML=`
   <div class="fade-in">
     <!-- Header -->
@@ -539,16 +536,6 @@ function renderResult(){
 
     <!-- Desc -->
     <div class="card"><p style="font-size:15px;color:#374151;line-height:1.8">${t.desc}</p></div>
-
-    <!-- Share Code -->
-    <div class="card" style="background:${t.colorBg};border:1px solid ${t.colorLight};text-align:center">
-      <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">팀 조합 분석용 공유 코드</p>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
-        <code id="shareCode" style="font-size:16px;font-weight:700;color:${t.color};background:#fff;padding:10px 18px;border-radius:10px;border:1px solid ${t.colorLight};letter-spacing:1px">${sCode}</code>
-      </div>
-      <button onclick="copyCode()" id="copyBtn" style="font-size:13px;font-weight:600;color:${t.color};background:#fff;border:1px solid ${t.colorLight};padding:8px 20px;border-radius:10px;cursor:pointer">📋 코드 복사</button>
-      <p style="font-size:11px;color:#9CA3AF;margin-top:8px">이 코드를 슬랙이나 카톡에 공유하세요</p>
-    </div>
 
     <!-- Chart -->
     <div class="card">
@@ -818,7 +805,7 @@ function renderTeam(){
       <div style="margin-top:16px;padding:16px;background:#F9FAFB;border-radius:14px">
         <p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">팀원 코드로 추가</p>
         <p style="font-size:12px;color:#9CA3AF;margin-bottom:12px">팀원이 공유한 코드를 붙여넣으세요. 여러 줄도 가능해요!</p>
-        <textarea id="codeInput" class="input" rows="3" placeholder="예시:&#10;한설:A:-6:3:sp&#10;민수:D:8:5:es" style="resize:vertical;margin-bottom:10px"></textarea>
+        <textarea id="codeInput" class="input" rows="3" placeholder="예시:&#10;김모비:A:-6:3:SP&#10;김민수:D:8:5:ES" style="resize:vertical;margin-bottom:10px"></textarea>
         <button class="btn btn-primary" onclick="addByCode()" style="font-size:14px;padding:12px">+ 코드로 추가</button>
       </div>
       `}
@@ -991,20 +978,6 @@ async function submitName(){
   }
 }
 
-function copyCode(){
-  const code=$("shareCode").textContent;
-  navigator.clipboard.writeText(code).then(()=>{
-    const btn=$("copyBtn");
-    btn.textContent="✅ 복사 완료!";
-    setTimeout(()=>{btn.textContent="📋 코드 복사";},2000);
-  }).catch(()=>{
-    // fallback
-    const ta=document.createElement("textarea");
-    ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
-    const btn=$("copyBtn");btn.textContent="✅ 복사 완료!";
-    setTimeout(()=>{btn.textContent="📋 코드 복사";},2000);
-  });
-}
 
 function goTeam(){state.screen="team";if(state.mode==="team")state._teamLoaded=false;else saveTeam();render();}
 function goResult(){state.screen="result";render();}
