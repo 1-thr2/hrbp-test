@@ -1222,12 +1222,15 @@ function answerSQ(val,btnIdx){
 async function submitName(){
   const inp=$("nameInput");
   if(inp&&inp.value.trim()){state.userName=inp.value.trim();}
-  else if(state.mode==="team"){
-    // Team mode: name is required, don't allow "나"
-    if(inp){inp.style.borderColor='#DC2626';inp.placeholder='이름을 입력해주세요!';setTimeout(()=>{inp.style.borderColor='#E5E7EB';},2000);}
-    return;
+  else if(!state.userName){
+    // No name yet
+    if(state.mode==="team"){
+      // Team mode: name is required, don't allow "나"
+      if(inp){inp.style.borderColor='#DC2626';inp.placeholder='이름을 입력해주세요!';setTimeout(()=>{inp.style.borderColor='#E5E7EB';},2000);}
+      return;
+    }
+    state.userName="나";
   }
-  else{state.userName="나";}
   saveMyResult();
   state.screen="result";
   render();
