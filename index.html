@@ -232,8 +232,8 @@ const TASKS = [
 ];
 
 /* ===== SUPABASE ===== */
-const SB_URL = 'https://YOUR_PROJECT.supabase.co';   // ← 여기에 Supabase Project URL
-const SB_KEY = 'YOUR_ANON_KEY';                       // ← 여기에 Supabase anon (public) key
+const SB_URL = 'https://vzygascbawpkzbbmaoef.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6eWdhc2NiYXdwa3piYm1hb2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2OTc5NDUsImV4cCI6MjA4NjI3Mzk0NX0.Vu3qCnxA9aP8GoMKS1huHGYRTYrMIytjmUzHhZ1NPiA';
 const sb = (typeof supabase!=='undefined' && SB_URL.indexOf('YOUR_PROJECT')===-1)
   ? supabase.createClient(SB_URL,SB_KEY) : null;
 
