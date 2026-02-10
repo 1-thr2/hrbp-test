@@ -1166,8 +1166,11 @@ function makeChart(members,size){
 
 /* ===== ACTIONS ===== */
 function startTest(){
+  // Preserve team context when retaking test in team mode
+  const keepTeam=state.mode==="team"&&state.teamId;
+  const tid=state.teamId,tname=state.teamName;
   state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthScores:{...EMPTY_SS},sqIdx:0,userName:"",members:[],selectedMember:0,
-    mode:"solo",teamId:null,teamName:"",loading:false,error:null,_teamLoaded:false,sharedResult:false,_viewMemberIdx:-1};
+    mode:keepTeam?"team":"solo",teamId:keepTeam?tid:null,teamName:keepTeam?tname:"",loading:false,error:null,_teamLoaded:false,sharedResult:false,_viewMemberIdx:-1};
   render();
 }
 
@@ -1217,6 +1220,11 @@ function answerSQ(val,btnIdx){
 async function submitName(){
   const inp=$("nameInput");
   if(inp&&inp.value.trim()){state.userName=inp.value.trim();}
+  else if(state.mode==="team"){
+    // Team mode: name is required, don't allow "나"
+    if(inp){inp.style.borderColor='#DC2626';inp.placeholder='이름을 입력해주세요!';setTimeout(()=>{inp.style.borderColor='#E5E7EB';},2000);}
+    return;
+  }
   else{state.userName="나";}
   saveMyResult();
   state.screen="result";
