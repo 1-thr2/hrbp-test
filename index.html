@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="HRBP 업무 스타일 진단 테스트 — 20문항으로 알아보는 나의 HRBP 유형, 에너지 맵, 팀 조합 분석">
+<meta property="og:title" content="나는 어떤 HRBP일까?">
+<meta property="og:description" content="HRBP 업무 스타일 진단 · 20문항 · 약 5분">
 <title>나는 어떤 HRBP일까?</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#FAFBFF 0%,#F0EDFF 40%,#E8F4FD 70%,#FFF5F2 100%);min-height:100vh;color:#1A1A2E}
@@ -184,6 +189,7 @@ const TYPES=["architect","builder","connector","driver"];
 const typeFromScores=(se,pt)=>(se<=0&&pt<=0)?"architect":(se<=0&&pt>0)?"builder":(se>0&&pt<=0)?"connector":"driver";
 const strengthMap={strategy:"architect",system:"builder",people:"connector",execution:"driver"};
 const STRENGTH_LABELS={architect:"전략·방향 설정",builder:"체계·시스템 구축",connector:"소통·관계 조율",driver:"실행·완수력"};
+const STRENGTH_CODES={strategy:"S",system:"Y",people:"P",execution:"E"};
 
 /* 1:1 Relationship Guide Data */
 const REL_GUIDE = {
@@ -220,14 +226,45 @@ const TASKS = [
 ];
 
 /* ===== STATE ===== */
-let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[]};
+let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[], selectedMember:0};
+let skipScroll = false;
+
+/* ===== PERSISTENCE ===== */
+function saveMyResult(){
+  try{localStorage.setItem('hrbp_result',JSON.stringify({userName:state.userName,scores:state.scores,strengthAnswers:state.strengthAnswers}));}catch(e){}
+}
+function saveTeam(){
+  try{localStorage.setItem('hrbp_team',JSON.stringify(state.members));}catch(e){}
+}
+function loadMyResult(){
+  try{const d=JSON.parse(localStorage.getItem('hrbp_result'));if(d&&d.userName){state.userName=d.userName;state.scores=d.scores;state.strengthAnswers=d.strengthAnswers||[];return true;}}catch(e){}return false;
+}
+function loadTeam(){
+  try{const d=JSON.parse(localStorage.getItem('hrbp_team'));if(d&&d.length>0){state.members=d;return true;}}catch(e){}return false;
+}
+function getTeamLink(){
+  const codes=state.members.map(m=>`${m.name}:${T[m.typeKey].code}:${m.se}:${m.pt}`);
+  return location.origin+location.pathname+'#team='+encodeURIComponent(codes.join('|'));
+}
+function parseTeamHash(){
+  const h=location.hash;if(!h.startsWith('#team='))return false;
+  const codeMap={A:"architect",B:"builder",C:"connector",D:"driver"};
+  const members=[];
+  decodeURIComponent(h.slice(6)).split('|').forEach(line=>{
+    const p=line.trim().split(':');
+    if(p.length>=4){const name=p[0].trim(),tc=p[1].trim().toUpperCase(),se=parseInt(p[2]),pt=parseInt(p[3]);
+      if(name&&codeMap[tc]&&!isNaN(se)&&!isNaN(pt))members.push({name,se:Math.max(-16,Math.min(16,se)),pt:Math.max(-16,Math.min(16,pt)),typeKey:codeMap[tc]});}
+  });
+  if(members.length>0){state.members=members;return true;}return false;
+}
 
 /* ===== RENDER ===== */
 const $=id=>document.getElementById(id);
 const app=()=>$("app");
 
 function render(){
-  window.scrollTo(0,0);
+  if(!skipScroll) window.scrollTo(0,0);
+  skipScroll=false;
   switch(state.screen){
     case "intro": renderIntro(); break;
     case "questions": renderQuestion(); break;
@@ -239,6 +276,7 @@ function render(){
 }
 
 function renderIntro(){
+  const saved=(()=>{try{const s=JSON.parse(localStorage.getItem('hrbp_result'));return s&&s.userName?s:null;}catch(e){return null;}})();
   app().innerHTML=`
   <div class="fade-in" style="text-align:center;padding-top:40px">
     <div style="font-size:56px;margin-bottom:16px">🧭</div>
@@ -250,6 +288,7 @@ function renderIntro(){
       <p style="font-size:13px;color:#9CA3AF;margin-top:14px;text-align:center">정답은 없어요 — 직관적으로 골라주세요</p>
     </div>
     <button class="btn btn-primary" onclick="startTest()" style="margin-top:16px">테스트 시작하기</button>
+    ${saved?`<button class="btn btn-secondary" onclick="goSavedResult()" style="margin-top:10px">📊 이전 결과 보기 (${saved.userName})</button>`:''}
   </div>`;
 }
 
@@ -351,7 +390,7 @@ function renderResult(){
   const topStrengthLabel=STRENGTH_LABELS[topStrength];
 
   // Share code
-  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>s[0][0]).join("")}`;
+  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>STRENGTH_CODES[s[0]]).join("")}`;
 
   app().innerHTML=`
   <div class="fade-in">
@@ -498,9 +537,10 @@ function renderTeam(){
   state.members.forEach(m=>{typeCounts[m.typeKey]=(typeCounts[m.typeKey]||0)+1;});
   const missing=TYPES.filter(t=>!typeCounts[t]);
 
-  // 1:1 guides for "me" to each other member
-  const me=state.members[0];
-  const others=state.members.slice(1);
+  // Selected member for relationship network
+  const selIdx=Math.min(state.selectedMember||0,state.members.length-1);
+  const selMember=state.members[selIdx];
+  const selOthers=state.members.filter((_,i)=>i!==selIdx);
 
   app().innerHTML=`
   <div class="fade-in">
@@ -535,13 +575,21 @@ function renderTeam(){
     </div>
     `:""}
 
-    <!-- 1:1 Relationship Guides -->
-    ${others.length>0?`
+    <!-- Relationship Network -->
+    ${selOthers.length>0?`
     <div class="card">
-      <div class="sec-title">💬 나 → 팀원 1:1 소통 가이드</div>
-      ${others.map(other=>{
-        const key=me.typeKey+">"+other.typeKey;
-        const guide=REL_GUIDE[key]||REL_GUIDE[me.typeKey+">"+me.typeKey];
+      <div class="sec-title">🔗 관계 소통 네트워크</div>
+      <p style="font-size:13px;color:#9CA3AF;margin-bottom:16px">팀원을 클릭하면 그 사람 기준의 소통 가이드를 볼 수 있어요</p>
+      ${makeRelNetwork(state.members,selIdx)}
+      <div style="text-align:center;margin:20px 0 4px">
+        <span style="font-size:24px">${T[selMember.typeKey].emoji}</span>
+        <span style="font-size:17px;font-weight:800;color:${T[selMember.typeKey].color};margin-left:6px">${selMember.name}</span>
+        <span style="font-size:14px;color:#9CA3AF"> 기준 소통 가이드</span>
+      </div>
+      <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:18px">${selMember.name}이(가) 각 팀원에게 다가갈 때 이렇게 하면 좋아요</p>
+      ${selOthers.map(other=>{
+        const key=selMember.typeKey+">"+other.typeKey;
+        const guide=REL_GUIDE[key]||REL_GUIDE[selMember.typeKey+">"+selMember.typeKey];
         const ot=T[other.typeKey];
         return`
         <div style="border:1px solid ${ot.colorLight};border-radius:14px;padding:16px;margin-bottom:12px;background:${ot.colorBg}22">
@@ -601,6 +649,15 @@ function renderTeam(){
       </div>
     </div>
 
+    <!-- Team Share Link -->
+    ${state.members.length>1?`
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#F3F0FF 0%,#EBF5FF 100%);border:1px solid #C4B5FD">
+      <div style="font-size:28px;margin-bottom:8px">🔗</div>
+      <p style="font-size:15px;font-weight:700;color:#374151;margin-bottom:6px">팀 공유 링크</p>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">이 링크를 공유하면 누구나 팀 조합 분석을<br>바로 볼 수 있어요 (로그인/입력 필요 없음)</p>
+      <button class="btn btn-primary" onclick="copyTeamLink()" id="teamLinkBtn" style="font-size:14px;padding:12px">🔗 팀 링크 복사</button>
+    </div>`:""}
+
     <!-- All types reference -->
     <div class="card">
       <div class="sec-title">📖 4가지 유형 참고</div>
@@ -645,9 +702,50 @@ function makeChart(members,size){
   </div>`;
 }
 
+/* ===== RELATIONSHIP NETWORK ===== */
+function makeRelNetwork(members,selIdx){
+  const count=members.length;
+  if(count<2)return'';
+  const size=280;
+  const cx=size/2,cy=size/2;
+  const r=count<=3?80:count<=5?95:100;
+  const pos=[];
+  for(let i=0;i<count;i++){
+    const angle=(2*Math.PI*i/count)-Math.PI/2;
+    pos.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)});
+  }
+  let lines='';
+  for(let i=0;i<count;i++){
+    for(let j=i+1;j<count;j++){
+      const isSel=i===selIdx||j===selIdx;
+      const c=isSel?T[members[selIdx].typeKey].color:'#E5E7EB';
+      lines+=`<line x1="${pos[i].x.toFixed(1)}" y1="${pos[i].y.toFixed(1)}" x2="${pos[j].x.toFixed(1)}" y2="${pos[j].y.toFixed(1)}" stroke="${c}" stroke-width="${isSel?2.5:1}" opacity="${isSel?0.5:0.2}" stroke-linecap="round"/>`;
+    }
+  }
+  const nodes=members.map((m,i)=>{
+    const t=T[m.typeKey];
+    const isSel=i===selIdx;
+    const s=isSel?54:44;
+    return`<div onclick="selectMember(${i})" style="position:absolute;left:${(pos[i].x/size*100).toFixed(1)}%;top:${(pos[i].y/size*100).toFixed(1)}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;z-index:${isSel?2:1}">
+      <div style="width:${s}px;height:${s}px;border-radius:50%;background:${isSel?t.color:'#fff'};border:3px solid ${t.color};display:flex;align-items:center;justify-content:center;font-size:${isSel?24:18}px;box-shadow:${isSel?'0 4px 14px '+t.color+'44':'0 2px 6px rgba(0,0,0,.08)'};margin:0 auto;transition:all .15s">${t.emoji}</div>
+      <div style="font-size:${isSel?12:11}px;font-weight:${isSel?800:600};color:${isSel?t.color:'#6B7280'};margin-top:4px;white-space:nowrap">${m.name}</div>
+    </div>`;
+  }).join('');
+  return`<div style="position:relative;width:100%;max-width:${size}px;height:${size}px;margin:0 auto">
+    <svg viewBox="0 0 ${size} ${size}" style="position:absolute;inset:0;width:100%;height:100%">${lines}</svg>
+    ${nodes}
+  </div>`;
+}
+
+function selectMember(idx){
+  state.selectedMember=idx;
+  skipScroll=true;
+  render();
+}
+
 /* ===== ACTIONS ===== */
 function startTest(){
-  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[]};
+  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[],selectedMember:0};
   render();
 }
 
@@ -683,6 +781,7 @@ function submitName(){
   const inp=$("nameInput");
   if(inp&&inp.value.trim()){state.userName=inp.value.trim();}
   else{state.userName="나";}
+  saveMyResult();
   state.screen="result";
   render();
 }
@@ -702,13 +801,30 @@ function copyCode(){
   });
 }
 
-function goTeam(){state.screen="team";render();}
+function goTeam(){state.screen="team";saveTeam();render();}
 function goResult(){state.screen="result";render();}
 function restart(){startTest();}
+function goSavedResult(){
+  if(loadMyResult()){loadTeam();state.screen="result";render();}
+}
+function copyTeamLink(){
+  const link=getTeamLink();
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=$("teamLinkBtn");btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="🔗 팀 링크 복사";},2000);
+  }).catch(()=>{
+    const ta=document.createElement("textarea");ta.value=link;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    const btn=$("teamLinkBtn");btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="🔗 팀 링크 복사";},2000);
+  });
+}
 
 function removeMember(idx){
   if(idx===0)return;
   state.members.splice(idx,1);
+  if(state.selectedMember>=state.members.length)state.selectedMember=0;
+  saveTeam();
+  skipScroll=true;
   render();
 }
 
@@ -734,11 +850,19 @@ function addByCode(){
       }
     }
   });
-  if(added>0){input.value="";render();}
+  if(added>0){input.value="";saveTeam();skipScroll=true;render();}
   else{input.style.borderColor="#DC2626";setTimeout(()=>{input.style.borderColor="#E5E7EB";},2000);}
 }
 
 /* ===== INIT ===== */
+if(parseTeamHash()){
+  // URL has team data — go directly to team view
+  loadMyResult(); // load own result if available
+  state.screen="team";
+} else {
+  loadMyResult();
+  loadTeam();
+}
 render();
 </script>
 </body>
