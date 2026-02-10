@@ -1168,12 +1168,16 @@ async function handleCreateTeam(){
 
 function copyInviteLink(){
   const link=location.origin+location.pathname+'?team='+state.teamId;
-  copyToClipboard(link,'inviteCopyBtn','📋 초대 링크 복사');
+  const msg=`🧭 나는 어떤 HRBP일까?\n\n"${state.teamName||'우리'}" 팀 HRBP 유형 진단에 초대받았어요!\n22문항 · 약 5분이면 끝나요.\n\n👉 ${link}`;
+  copyToClipboard(msg,'inviteCopyBtn','📋 초대 링크 복사');
 }
 
 function shareMyResult(){
   const link=getResultShareLink();
-  copyToClipboard(link,'shareResultBtn','🔗 내 결과 공유하기');
+  const tk=typeFromScores(state.scores.SE,state.scores.PT);
+  const t=T[tk];
+  const msg=`🧭 나의 HRBP 유형은 "${t.emoji} ${t.name}"!\n${t.subtitle}\n\n너도 궁금하면 해봐! 22문항 · 약 5분\n👉 ${link}`;
+  copyToClipboard(msg,'shareResultBtn','🔗 내 결과 공유하기');
 }
 
 function startTeamTest(){
