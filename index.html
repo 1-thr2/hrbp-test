@@ -887,15 +887,28 @@ function renderTeam(){
     <!-- Relationship Network -->
     ${selOthers.length>0?`
     <div class="card">
-      <div class="sec-title">🔗 관계 소통 네트워크</div>
-      <p style="font-size:13px;color:#9CA3AF;margin-bottom:16px">팀원을 클릭하면 그 사람 기준의 소통 가이드를 볼 수 있어요</p>
-      ${makeRelNetwork(state.members,selIdx)}
-      <div style="text-align:center;margin:20px 0 4px">
+      <div class="sec-title">🤝 1:1 소통 가이드</div>
+      <p style="font-size:13px;color:#9CA3AF;margin-bottom:16px">기준이 되는 사람을 선택하면, 그 사람이 다른 팀원에게 어떻게 다가가면 좋은지 알려드려요</p>
+
+      <!-- Member selector tabs -->
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px">
+        ${state.members.map((m,i)=>{
+          const t=T[m.typeKey];
+          const isSel=i===selIdx;
+          return`<button onclick="selectMember(${i})" style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:2px solid ${isSel?t.color:'#E5E7EB'};background:${isSel?t.colorBg:'#fff'};cursor:pointer;transition:all .15s;font-family:inherit">
+            <span style="font-size:16px">${t.emoji}</span>
+            <span style="font-size:13px;font-weight:${isSel?700:500};color:${isSel?t.color:'#6B7280'}">${m.name}</span>
+          </button>`;
+        }).join('')}
+      </div>
+
+      <div style="text-align:center;margin-bottom:16px">
         <span style="font-size:24px">${T[selMember.typeKey].emoji}</span>
         <span style="font-size:17px;font-weight:800;color:${T[selMember.typeKey].color};margin-left:6px">${selMember.name}</span>
-        <span style="font-size:14px;color:#9CA3AF"> 기준 소통 가이드</span>
+        <span style="font-size:14px;color:#9CA3AF"> 기준</span>
+        <p style="font-size:12px;color:#9CA3AF;margin-top:4px">${selMember.name}이(가) 각 팀원에게 다가갈 때 이렇게 하면 좋아요</p>
       </div>
-      <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:18px">${selMember.name}이(가) 각 팀원에게 다가갈 때 이렇게 하면 좋아요</p>
+
       ${selOthers.map(other=>{
         const key=getBaseType(selMember.typeKey)+">"+getBaseType(other.typeKey);
         const guide=REL_GUIDE[key]||REL_GUIDE[getBaseType(selMember.typeKey)+">"+getBaseType(selMember.typeKey)];
@@ -908,6 +921,7 @@ function renderTeam(){
               <div style="font-size:15px;font-weight:700;color:${ot.color}">${other.name}</div>
               <div style="font-size:12px;color:#9CA3AF">${ot.name}</div>
             </div>
+            <span style="margin-left:auto;font-size:11px;color:#9CA3AF;background:#F3F4F6;padding:3px 8px;border-radius:6px">→ ${selMember.name}이(가) ${other.name}에게</span>
           </div>
           ${[{icon:"📨",label:"요청할 때",text:guide.req},{icon:"💬",label:"피드백할 때",text:guide.fb},{icon:"⚠️",label:"주의",text:guide.warn},{icon:"✨",label:"시너지",text:guide.synergy}].map((item,i)=>`
             <div style="padding:10px 12px;background:${i%2===0?"#fff":"#FAFAFA"};border-radius:10px;margin-bottom:${i<3?6:0}px">
