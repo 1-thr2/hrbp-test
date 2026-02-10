@@ -229,6 +229,35 @@ const TASKS = [
 let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[], selectedMember:0};
 let skipScroll = false;
 
+/* ===== PERSISTENCE ===== */
+function saveMyResult(){
+  try{localStorage.setItem('hrbp_result',JSON.stringify({userName:state.userName,scores:state.scores,strengthAnswers:state.strengthAnswers}));}catch(e){}
+}
+function saveTeam(){
+  try{localStorage.setItem('hrbp_team',JSON.stringify(state.members));}catch(e){}
+}
+function loadMyResult(){
+  try{const d=JSON.parse(localStorage.getItem('hrbp_result'));if(d&&d.userName){state.userName=d.userName;state.scores=d.scores;state.strengthAnswers=d.strengthAnswers||[];return true;}}catch(e){}return false;
+}
+function loadTeam(){
+  try{const d=JSON.parse(localStorage.getItem('hrbp_team'));if(d&&d.length>0){state.members=d;return true;}}catch(e){}return false;
+}
+function getTeamLink(){
+  const codes=state.members.map(m=>`${m.name}:${T[m.typeKey].code}:${m.se}:${m.pt}`);
+  return location.origin+location.pathname+'#team='+encodeURIComponent(codes.join('|'));
+}
+function parseTeamHash(){
+  const h=location.hash;if(!h.startsWith('#team='))return false;
+  const codeMap={A:"architect",B:"builder",C:"connector",D:"driver"};
+  const members=[];
+  decodeURIComponent(h.slice(6)).split('|').forEach(line=>{
+    const p=line.trim().split(':');
+    if(p.length>=4){const name=p[0].trim(),tc=p[1].trim().toUpperCase(),se=parseInt(p[2]),pt=parseInt(p[3]);
+      if(name&&codeMap[tc]&&!isNaN(se)&&!isNaN(pt))members.push({name,se:Math.max(-16,Math.min(16,se)),pt:Math.max(-16,Math.min(16,pt)),typeKey:codeMap[tc]});}
+  });
+  if(members.length>0){state.members=members;return true;}return false;
+}
+
 /* ===== RENDER ===== */
 const $=id=>document.getElementById(id);
 const app=()=>$("app");
@@ -247,6 +276,7 @@ function render(){
 }
 
 function renderIntro(){
+  const saved=(()=>{try{const s=JSON.parse(localStorage.getItem('hrbp_result'));return s&&s.userName?s:null;}catch(e){return null;}})();
   app().innerHTML=`
   <div class="fade-in" style="text-align:center;padding-top:40px">
     <div style="font-size:56px;margin-bottom:16px">🧭</div>
@@ -258,6 +288,7 @@ function renderIntro(){
       <p style="font-size:13px;color:#9CA3AF;margin-top:14px;text-align:center">정답은 없어요 — 직관적으로 골라주세요</p>
     </div>
     <button class="btn btn-primary" onclick="startTest()" style="margin-top:16px">테스트 시작하기</button>
+    ${saved?`<button class="btn btn-secondary" onclick="goSavedResult()" style="margin-top:10px">📊 이전 결과 보기 (${saved.userName})</button>`:''}
   </div>`;
 }
 
@@ -618,6 +649,15 @@ function renderTeam(){
       </div>
     </div>
 
+    <!-- Team Share Link -->
+    ${state.members.length>1?`
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#F3F0FF 0%,#EBF5FF 100%);border:1px solid #C4B5FD">
+      <div style="font-size:28px;margin-bottom:8px">🔗</div>
+      <p style="font-size:15px;font-weight:700;color:#374151;margin-bottom:6px">팀 공유 링크</p>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">이 링크를 공유하면 누구나 팀 조합 분석을<br>바로 볼 수 있어요 (로그인/입력 필요 없음)</p>
+      <button class="btn btn-primary" onclick="copyTeamLink()" id="teamLinkBtn" style="font-size:14px;padding:12px">🔗 팀 링크 복사</button>
+    </div>`:""}
+
     <!-- All types reference -->
     <div class="card">
       <div class="sec-title">📖 4가지 유형 참고</div>
@@ -741,6 +781,7 @@ function submitName(){
   const inp=$("nameInput");
   if(inp&&inp.value.trim()){state.userName=inp.value.trim();}
   else{state.userName="나";}
+  saveMyResult();
   state.screen="result";
   render();
 }
@@ -760,14 +801,29 @@ function copyCode(){
   });
 }
 
-function goTeam(){state.screen="team";render();}
+function goTeam(){state.screen="team";saveTeam();render();}
 function goResult(){state.screen="result";render();}
 function restart(){startTest();}
+function goSavedResult(){
+  if(loadMyResult()){loadTeam();state.screen="result";render();}
+}
+function copyTeamLink(){
+  const link=getTeamLink();
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=$("teamLinkBtn");btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="🔗 팀 링크 복사";},2000);
+  }).catch(()=>{
+    const ta=document.createElement("textarea");ta.value=link;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    const btn=$("teamLinkBtn");btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="🔗 팀 링크 복사";},2000);
+  });
+}
 
 function removeMember(idx){
   if(idx===0)return;
   state.members.splice(idx,1);
   if(state.selectedMember>=state.members.length)state.selectedMember=0;
+  saveTeam();
   skipScroll=true;
   render();
 }
@@ -794,11 +850,19 @@ function addByCode(){
       }
     }
   });
-  if(added>0){input.value="";skipScroll=true;render();}
+  if(added>0){input.value="";saveTeam();skipScroll=true;render();}
   else{input.style.borderColor="#DC2626";setTimeout(()=>{input.style.borderColor="#E5E7EB";},2000);}
 }
 
 /* ===== INIT ===== */
+if(parseTeamHash()){
+  // URL has team data — go directly to team view
+  loadMyResult(); // load own result if available
+  state.screen="team";
+} else {
+  loadMyResult();
+  loadTeam();
+}
 render();
 </script>
 </body>
