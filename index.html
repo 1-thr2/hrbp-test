@@ -226,14 +226,16 @@ const TASKS = [
 ];
 
 /* ===== STATE ===== */
-let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[]};
+let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[], selectedMember:0};
+let skipScroll = false;
 
 /* ===== RENDER ===== */
 const $=id=>document.getElementById(id);
 const app=()=>$("app");
 
 function render(){
-  window.scrollTo(0,0);
+  if(!skipScroll) window.scrollTo(0,0);
+  skipScroll=false;
   switch(state.screen){
     case "intro": renderIntro(); break;
     case "questions": renderQuestion(); break;
@@ -504,9 +506,10 @@ function renderTeam(){
   state.members.forEach(m=>{typeCounts[m.typeKey]=(typeCounts[m.typeKey]||0)+1;});
   const missing=TYPES.filter(t=>!typeCounts[t]);
 
-  // 1:1 guides for "me" to each other member
-  const me=state.members[0];
-  const others=state.members.slice(1);
+  // Selected member for relationship network
+  const selIdx=Math.min(state.selectedMember||0,state.members.length-1);
+  const selMember=state.members[selIdx];
+  const selOthers=state.members.filter((_,i)=>i!==selIdx);
 
   app().innerHTML=`
   <div class="fade-in">
@@ -541,13 +544,21 @@ function renderTeam(){
     </div>
     `:""}
 
-    <!-- 1:1 Relationship Guides -->
-    ${others.length>0?`
+    <!-- Relationship Network -->
+    ${selOthers.length>0?`
     <div class="card">
-      <div class="sec-title">💬 나 → 팀원 1:1 소통 가이드</div>
-      ${others.map(other=>{
-        const key=me.typeKey+">"+other.typeKey;
-        const guide=REL_GUIDE[key]||REL_GUIDE[me.typeKey+">"+me.typeKey];
+      <div class="sec-title">🔗 관계 소통 네트워크</div>
+      <p style="font-size:13px;color:#9CA3AF;margin-bottom:16px">팀원을 클릭하면 그 사람 기준의 소통 가이드를 볼 수 있어요</p>
+      ${makeRelNetwork(state.members,selIdx)}
+      <div style="text-align:center;margin:20px 0 4px">
+        <span style="font-size:24px">${T[selMember.typeKey].emoji}</span>
+        <span style="font-size:17px;font-weight:800;color:${T[selMember.typeKey].color};margin-left:6px">${selMember.name}</span>
+        <span style="font-size:14px;color:#9CA3AF"> 기준 소통 가이드</span>
+      </div>
+      <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:18px">${selMember.name}이(가) 각 팀원에게 다가갈 때 이렇게 하면 좋아요</p>
+      ${selOthers.map(other=>{
+        const key=selMember.typeKey+">"+other.typeKey;
+        const guide=REL_GUIDE[key]||REL_GUIDE[selMember.typeKey+">"+selMember.typeKey];
         const ot=T[other.typeKey];
         return`
         <div style="border:1px solid ${ot.colorLight};border-radius:14px;padding:16px;margin-bottom:12px;background:${ot.colorBg}22">
@@ -651,9 +662,50 @@ function makeChart(members,size){
   </div>`;
 }
 
+/* ===== RELATIONSHIP NETWORK ===== */
+function makeRelNetwork(members,selIdx){
+  const count=members.length;
+  if(count<2)return'';
+  const size=280;
+  const cx=size/2,cy=size/2;
+  const r=count<=3?80:count<=5?95:100;
+  const pos=[];
+  for(let i=0;i<count;i++){
+    const angle=(2*Math.PI*i/count)-Math.PI/2;
+    pos.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)});
+  }
+  let lines='';
+  for(let i=0;i<count;i++){
+    for(let j=i+1;j<count;j++){
+      const isSel=i===selIdx||j===selIdx;
+      const c=isSel?T[members[selIdx].typeKey].color:'#E5E7EB';
+      lines+=`<line x1="${pos[i].x.toFixed(1)}" y1="${pos[i].y.toFixed(1)}" x2="${pos[j].x.toFixed(1)}" y2="${pos[j].y.toFixed(1)}" stroke="${c}" stroke-width="${isSel?2.5:1}" opacity="${isSel?0.5:0.2}" stroke-linecap="round"/>`;
+    }
+  }
+  const nodes=members.map((m,i)=>{
+    const t=T[m.typeKey];
+    const isSel=i===selIdx;
+    const s=isSel?54:44;
+    return`<div onclick="selectMember(${i})" style="position:absolute;left:${(pos[i].x/size*100).toFixed(1)}%;top:${(pos[i].y/size*100).toFixed(1)}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;z-index:${isSel?2:1}">
+      <div style="width:${s}px;height:${s}px;border-radius:50%;background:${isSel?t.color:'#fff'};border:3px solid ${t.color};display:flex;align-items:center;justify-content:center;font-size:${isSel?24:18}px;box-shadow:${isSel?'0 4px 14px '+t.color+'44':'0 2px 6px rgba(0,0,0,.08)'};margin:0 auto;transition:all .15s">${t.emoji}</div>
+      <div style="font-size:${isSel?12:11}px;font-weight:${isSel?800:600};color:${isSel?t.color:'#6B7280'};margin-top:4px;white-space:nowrap">${m.name}</div>
+    </div>`;
+  }).join('');
+  return`<div style="position:relative;width:100%;max-width:${size}px;height:${size}px;margin:0 auto">
+    <svg viewBox="0 0 ${size} ${size}" style="position:absolute;inset:0;width:100%;height:100%">${lines}</svg>
+    ${nodes}
+  </div>`;
+}
+
+function selectMember(idx){
+  state.selectedMember=idx;
+  skipScroll=true;
+  render();
+}
+
 /* ===== ACTIONS ===== */
 function startTest(){
-  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[]};
+  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[],selectedMember:0};
   render();
 }
 
@@ -715,6 +767,8 @@ function restart(){startTest();}
 function removeMember(idx){
   if(idx===0)return;
   state.members.splice(idx,1);
+  if(state.selectedMember>=state.members.length)state.selectedMember=0;
+  skipScroll=true;
   render();
 }
 
@@ -740,7 +794,7 @@ function addByCode(){
       }
     }
   });
-  if(added>0){input.value="";render();}
+  if(added>0){input.value="";skipScroll=true;render();}
   else{input.style.borderColor="#DC2626";setTimeout(()=>{input.style.borderColor="#E5E7EB";},2000);}
 }
 
