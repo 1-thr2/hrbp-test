@@ -1215,7 +1215,20 @@ function saveMyTeamContext(teamId,teamName){
   try{localStorage.setItem('hrbp_my_team',JSON.stringify({teamId,teamName,ts:Date.now()}));}catch(e){}
 }
 function loadMyTeamContext(){
-  try{const d=JSON.parse(localStorage.getItem('hrbp_my_team'));if(d&&d.teamId)return d;return null;}catch(e){return null;}
+  try{const d=JSON.parse(localStorage.getItem('hrbp_my_team'));if(d&&d.teamId)return d;}catch(e){}
+  // Fallback: scan for any hrbp_tm_ membership key
+  try{
+    let best=null;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith('hrbp_tm_')){
+        const d=JSON.parse(localStorage.getItem(k));
+        if(d&&d.ts&&(!best||d.ts>best.ts))best={teamId:k.slice(8),ts:d.ts};
+      }
+    }
+    if(best)return{teamId:best.teamId,teamName:null};
+  }catch(e){}
+  return null;
 }
 
 function showToast(msg){
@@ -1314,12 +1327,23 @@ function addByCode(){
     const hasResult=loadMyResult();loadTeam();
     const savedTeam=loadMyTeamContext();
     if(savedTeam&&sb){
-      state.mode="team";state.teamId=savedTeam.teamId;state.teamName=savedTeam.teamName;
+      state.mode="team";state.teamId=savedTeam.teamId;state.teamName=savedTeam.teamName||'';
       const savedName=getTeamMembership(savedTeam.teamId);
       if(savedName)state.userName=savedName;
       if(hasResult)state.screen="result";
+      render();
+      // If teamName missing (fallback recovery), fetch from Supabase
+      if(!savedTeam.teamName){
+        try{
+          const team=await sbGetTeam(savedTeam.teamId);
+          state.teamName=team.name;
+          saveMyTeamContext(savedTeam.teamId,team.name);
+          render();
+        }catch(e){/* team may have been deleted */}
+      }
+    } else {
+      render();
     }
-    render();
   }
 })();
 </script>
