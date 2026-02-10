@@ -383,15 +383,28 @@ function findConflictPairs(members){
   for(let i=0;i<members.length;i++){
     for(let j=i+1;j<members.length;j++){
       const a=members[i],b=members[j];
-      const baseA=getBaseType(a.typeKey),baseB=getBaseType(b.typeKey);
       const tA=T[a.typeKey],tB=T[b.typeKey];
-      const isTension=(tA.tensionMatch===baseB)||(tB.tensionMatch===baseA);
+      // Match using exact typeKey only — no base-type fallback
+      const aTensionB=tA.tensionMatch===b.typeKey;
+      const bTensionA=tB.tensionMatch===a.typeKey;
+      const isTension=aTensionB||bTensionA;
       const dist=Math.abs(a.se-b.se)+Math.abs(a.pt-b.pt);
       if(isTension||dist>=16){
-        const reason=tA.tensionMatch===baseB?tA.tensionReason:(tB.tensionMatch===baseA?tB.tensionReason:"성향 차이가 커서 의사소통 방식이나 업무 속도에서 마찰이 생길 수 있어요.");
-        const keyAB=baseA+">"+baseB;const keyBA=baseB+">"+baseA;
-        const guide=REL_GUIDE[keyAB]||REL_GUIDE[keyBA];
-        const tip=guide?guide.synergy:"서로의 차이를 '보완'으로 인정하고 역할을 나누면 오히려 강점이 돼요.";
+        // Build reason using actual type names, not base types
+        let reason;
+        if(aTensionB)reason=tA.tensionReason.replace(new RegExp(T[tA.tensionMatch]?.name||'','g'),tB.name);
+        else if(bTensionA)reason=tB.tensionReason.replace(new RegExp(T[tB.tensionMatch]?.name||'','g'),tA.name);
+        else reason=`${tA.name}(${a.name})과 ${tB.name}(${b.name})은 성향 차이가 커서 의사소통 방식이나 업무 속도에서 마찰이 생길 수 있어요.`;
+        // Synergy tip from REL_GUIDE, with name replacement
+        const baseA=getBaseType(a.typeKey),baseB=getBaseType(b.typeKey);
+        const guide=REL_GUIDE[baseA+">"+baseB]||REL_GUIDE[baseB+">"+baseA];
+        let tip=guide?guide.synergy:"서로의 차이를 '보완'으로 인정하고 역할을 나누면 오히려 강점이 돼요.";
+        // Replace base type names with actual type names in tip text
+        const nameMap={조직설계자:tA.name,시스템빌더:tB.name,피플커넥터:tA.name,실행드라이버:tB.name,설계자:null,빌더:null,커넥터:null,드라이버:null};
+        [{base:"architect",label:"설계자"},{base:"builder",label:"빌더"},{base:"connector",label:"커넥터"},{base:"driver",label:"드라이버"}].forEach(({base,label})=>{
+          if(baseA===base)tip=tip.replace(new RegExp(label,'g'),tA.name);
+          if(baseB===base)tip=tip.replace(new RegExp(label,'g'),tB.name);
+        });
         pairs.push({a,b,dist,reason,tip,isTension});
       }
     }
