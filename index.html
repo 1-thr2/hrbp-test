@@ -269,7 +269,7 @@ async function sbLoadResults(teamId){
 /* ===== STATE ===== */
 const EMPTY_SS={strategy:0,system:0,people:0,execution:0};
 let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthScores:{...EMPTY_SS}, sqIdx:0, userName:"", members:[], selectedMember:0,
-  mode:"solo", teamId:null, teamName:"", loading:false, error:null, _teamLoaded:false};
+  mode:"solo", teamId:null, teamName:"", loading:false, error:null, _teamLoaded:false, sharedResult:false};
 let skipScroll = false;
 
 /* ===== PERSISTENCE ===== */
@@ -300,6 +300,24 @@ function parseTeamHash(){
   });
   if(members.length>0){state.members=members;return true;}return false;
 }
+function getResultShareLink(){
+  const ss=state.strengthScores;
+  const parts=[state.userName,state.scores.SE,state.scores.PT,ss.strategy,ss.system,ss.people,ss.execution];
+  return location.origin+location.pathname+'?r='+encodeURIComponent(parts.join('.'));
+}
+function parseResultParam(){
+  const r=new URLSearchParams(location.search).get('r');
+  if(!r)return false;
+  const p=decodeURIComponent(r).split('.');
+  if(p.length<3)return false;
+  const name=p[0],se=parseInt(p[1]),pt=parseInt(p[2]);
+  if(!name||isNaN(se)||isNaN(pt))return false;
+  state.userName=name;
+  state.scores={SE:Math.max(-16,Math.min(16,se)),PT:Math.max(-16,Math.min(16,pt))};
+  if(p.length>=7)state.strengthScores={strategy:parseInt(p[3])||0,system:parseInt(p[4])||0,people:parseInt(p[5])||0,execution:parseInt(p[6])||0};
+  state.sharedResult=true;
+  return true;
+}
 
 /* ===== RENDER ===== */
 const $=id=>document.getElementById(id);
@@ -329,12 +347,11 @@ function renderIntro(){
     <h1 style="font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.5px;margin-bottom:8px">나는 어떤 HRBP일까?</h1>
     <p style="font-size:15px;color:#6B7280;margin-bottom:28px;line-height:1.6">HRBP 업무 스타일 진단 · 22문항 · 약 5분</p>
     <div class="card" style="text-align:left">
-      <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:18px">20개 질문에 답하면, 나의 HRBP 업무 스타일을 알려드려요.</p>
+      <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:18px">22개 질문에 답하면, 나의 HRBP 업무 스타일을 알려드려요.</p>
       ${[["⚡","에너지가 나는 과업 / 깎이는 과업"],["🏆","내가 실제로 잘 발휘하는 강점"],["📋","나와 협업할 때 사용설명서"],["😰","스트레스 시그널 & 회복 방법"],["🤝","팀원별 1:1 소통 가이드"],["📊","과업별 리드/서포트 추천"]].map(([i,t])=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#F9FAFB;border-radius:12px;font-size:14px;color:#374151;margin-bottom:8px"><span style="font-size:18px">${i}</span>${t}</div>`).join("")}
       <p style="font-size:13px;color:#9CA3AF;margin-top:14px;text-align:center">정답은 없어요 — 직관적으로 골라주세요</p>
     </div>
-    <button class="btn btn-primary" onclick="startTest()" style="margin-top:16px">혼자 테스트 시작하기</button>
-    ${sb?`<button class="btn btn-secondary" onclick="goCreateTeam()" style="margin-top:10px">👥 우리 팀 만들기</button>`:''}
+    <button class="btn btn-primary" onclick="startTest()" style="margin-top:16px">테스트 시작하기</button>
     ${saved?`<button class="btn btn-secondary" onclick="goSavedResult()" style="margin-top:10px">📊 이전 결과 보기 (${saved.userName})</button>`:''}
   </div>`;
 }
@@ -353,7 +370,7 @@ function renderCreateTeam(){
     <button class="btn btn-primary" onclick="handleCreateTeam()" id="createTeamBtn" ${state.loading?'disabled style="opacity:0.6"':''}>
       ${state.loading?'<span class="spinner" style="width:18px;height:18px;border-width:2px;vertical-align:middle;margin-right:8px"></span>팀 생성 중...':'팀 만들기'}
     </button>
-    <button class="btn btn-secondary" onclick="state.screen='intro';state.error=null;render()" style="margin-top:10px">← 돌아가기</button>
+    <button class="btn btn-secondary" onclick="state.screen='result';state.error=null;render()" style="margin-top:10px">← 돌아가기</button>
   </div>`;
   if(!state.loading){setTimeout(()=>{const inp=$("teamNameInput");if(inp)inp.focus();},300);}
 }
@@ -364,17 +381,17 @@ function renderInviteLink(){
   <div class="fade-in" style="padding-top:40px;text-align:center">
     <div style="font-size:48px;margin-bottom:16px">🎉</div>
     <h2 style="font-size:22px;font-weight:700;margin-bottom:6px">"${state.teamName}" 팀이 만들어졌어요!</h2>
-    <p style="font-size:14px;color:#6B7280;margin-bottom:28px;line-height:1.6">
-      아래 링크를 팀원들에게 공유하세요.<br>
-      링크를 통해 테스트하면 결과가 자동으로 모여요.
+    <p style="font-size:14px;color:#6B7280;margin-bottom:8px;line-height:1.6">
+      내 결과는 자동 저장됐어요.<br>
+      아래 링크를 팀원들에게 공유하세요!
     </p>
     <div class="card" style="background:#F3F0FF;border:1px solid #C4B5FD">
       <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">초대 링크</p>
       <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;font-size:13px;color:#374151;word-break:break-all;margin-bottom:12px;font-family:monospace">${link}</div>
       <button class="btn btn-primary" onclick="copyInviteLink()" id="inviteCopyBtn" style="font-size:14px;padding:12px">📋 초대 링크 복사</button>
     </div>
-    <button class="btn btn-primary" onclick="startTeamTest()" style="margin-top:16px">나도 테스트 시작하기</button>
-    <button class="btn btn-secondary" onclick="goTeamView()" style="margin-top:10px">팀 결과 보기</button>
+    <button class="btn btn-primary" onclick="goTeamView()" style="margin-top:16px">팀 결과 보기</button>
+    <button class="btn btn-secondary" onclick="goResult()" style="margin-top:10px">← 내 결과로 돌아가기</button>
   </div>`;
 }
 
@@ -639,11 +656,35 @@ function renderResult(){
       </div>
     </div>
 
-    <!-- Actions -->
-    <div style="display:flex;gap:12px;margin-bottom:16px">
-      <button class="btn btn-primary" onclick="goTeam()" style="flex:1">👥 팀 조합 보기</button>
-      <button class="btn btn-secondary" onclick="restart()" style="flex:1">다시 테스트</button>
+    <!-- Share my result -->
+    ${!state.sharedResult?`
+    <div style="text-align:center;margin-bottom:16px">
+      <button class="btn btn-secondary" onclick="shareMyResult()" id="shareResultBtn" style="font-size:14px">🔗 내 결과 공유하기</button>
+    </div>`:''}
+
+    <!-- Team CTA -->
+    ${state.sharedResult?`
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#F3F0FF 0%,#EBF5FF 100%);border:2px solid #C4B5FD">
+      <div style="font-size:36px;margin-bottom:8px">🧭</div>
+      <p style="font-size:16px;font-weight:700;color:#374151;margin-bottom:8px">나도 궁금하다면?</p>
+      <button class="btn btn-primary" onclick="location.href=location.pathname" style="margin-top:8px">나도 테스트하기</button>
     </div>
+    `:state.mode==="team"?`
+    <button class="btn btn-primary" onclick="goTeam()" style="width:100%;margin-bottom:12px">👥 팀 결과 보기</button>
+    <button class="btn btn-secondary" onclick="restart()" style="width:100%;margin-bottom:16px">다시 테스트</button>
+    `:`
+    ${sb?`
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#F3F0FF 0%,#EBF5FF 100%);border:2px solid #C4B5FD">
+      <div style="font-size:36px;margin-bottom:8px">👥</div>
+      <p style="font-size:16px;font-weight:700;color:#374151;margin-bottom:6px">우리 팀 조합도 알아보세요</p>
+      <p style="font-size:13px;color:#6B7280;line-height:1.6;margin-bottom:16px">팀을 만들고 링크를 공유하면, 팀원들이<br>테스트를 하는 대로 자동으로 결과가 모여요</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px">
+        ${[["📊","팀 유형 분포 & 밸런스"],["🤝","1:1 맞춤 소통 가이드"],["📋","과업별 리드/서포트 추천"]].map(([i,t])=>`<span style="font-size:12px;padding:6px 12px;background:#fff;border:1px solid #E5E7EB;border-radius:10px;color:#374151">${i} ${t}</span>`).join("")}
+      </div>
+      <button class="btn btn-primary" onclick="goCreateTeam()">우리 팀 만들기</button>
+    </div>`:``}
+    <button class="btn btn-secondary" onclick="restart()" style="width:100%;margin-bottom:16px">다시 테스트</button>
+    `}
     <div style="height:32px"></div>
   </div>`;
 }
@@ -908,7 +949,7 @@ function selectMember(idx){
 /* ===== ACTIONS ===== */
 function startTest(){
   state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthScores:{...EMPTY_SS},sqIdx:0,userName:"",members:[],selectedMember:0,
-    mode:"solo",teamId:null,teamName:"",loading:false,error:null,_teamLoaded:false};
+    mode:"solo",teamId:null,teamName:"",loading:false,error:null,_teamLoaded:false,sharedResult:false};
   render();
 }
 
@@ -997,6 +1038,13 @@ async function handleCreateTeam(){
   try{
     const team=await sbCreateTeam(name);
     state.mode="team";state.teamId=team.id;state.teamName=team.name;
+    // Auto-save creator's result to the new team
+    if(state.userName&&state.scores){
+      const tk=typeFromScores(state.scores.SE,state.scores.PT);
+      const rankedS=Object.entries(state.strengthScores).sort((a,b)=>b[1]-a[1]).map(s=>s[0]);
+      await sbSaveResult(team.id,state.userName,state.scores.SE,state.scores.PT,tk,rankedS);
+      saveTeamMembership(team.id,state.userName);
+    }
     state.loading=false;state.screen="inviteLink";render();
   }catch(e){
     state.loading=false;state.error={message:'팀 생성에 실패했어요. 다시 시도해주세요.'};render();
@@ -1006,6 +1054,11 @@ async function handleCreateTeam(){
 function copyInviteLink(){
   const link=location.origin+location.pathname+'?team='+state.teamId;
   copyToClipboard(link,'inviteCopyBtn','📋 초대 링크 복사');
+}
+
+function shareMyResult(){
+  const link=getResultShareLink();
+  copyToClipboard(link,'shareResultBtn','🔗 내 결과 공유하기');
 }
 
 function startTeamTest(){
@@ -1109,11 +1162,10 @@ function addByCode(){
     try{
       const team=await sbGetTeam(teamIdParam);
       state.teamName=team.name;state.loading=false;
-      // Check if user already took this team's test
       const savedName=getTeamMembership(teamIdParam);
       if(savedName){
         loadMyResult();state.userName=savedName;
-        state.screen="team"; // go straight to team view
+        state.screen="team";
       }
       render();
     }catch(e){
@@ -1121,8 +1173,10 @@ function addByCode(){
       state.error={message:'링크가 올바르지 않거나, 팀이 삭제되었을 수 있어요.'};
       render();
     }
+  } else if(parseResultParam()){
+    // Individual result sharing link (?r=...)
+    state.screen="result";render();
   } else if(parseTeamHash()){
-    // Legacy URL hash team data (backward compatibility)
     loadMyResult();state.screen="team";render();
   } else {
     loadMyResult();loadTeam();render();
