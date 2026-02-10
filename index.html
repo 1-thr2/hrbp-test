@@ -1139,7 +1139,12 @@ function goTeam(){state.screen="team";if(state.mode==="team")state._teamLoaded=f
 function goResult(){state.screen="result";render();}
 function restart(){startTest();}
 function goSavedResult(){
-  if(loadMyResult()){loadTeam();state.screen="result";render();}
+  if(loadMyResult()){
+    loadTeam();
+    const savedTeam=loadMyTeamContext();
+    if(savedTeam&&sb){state.mode="team";state.teamId=savedTeam.teamId;state.teamName=savedTeam.teamName;}
+    state.screen="result";render();
+  }
 }
 
 /* --- Team flow actions --- */
@@ -1153,6 +1158,7 @@ async function handleCreateTeam(){
   try{
     const team=await sbCreateTeam(name);
     state.mode="team";state.teamId=team.id;state.teamName=team.name;
+    saveMyTeamContext(team.id,team.name);
     // Auto-save creator's result to the new team
     if(state.userName&&state.scores){
       const tk=typeFromScores(state.scores.SE,state.scores.PT);
@@ -1204,6 +1210,12 @@ function saveTeamMembership(teamId,userName){
 }
 function getTeamMembership(teamId){
   try{const d=JSON.parse(localStorage.getItem('hrbp_tm_'+teamId));return d?d.userName:null;}catch(e){return null;}
+}
+function saveMyTeamContext(teamId,teamName){
+  try{localStorage.setItem('hrbp_my_team',JSON.stringify({teamId,teamName,ts:Date.now()}));}catch(e){}
+}
+function loadMyTeamContext(){
+  try{const d=JSON.parse(localStorage.getItem('hrbp_my_team'));if(d&&d.teamId)return d;return null;}catch(e){return null;}
 }
 
 function showToast(msg){
@@ -1281,6 +1293,7 @@ function addByCode(){
     try{
       const team=await sbGetTeam(teamIdParam);
       state.teamName=team.name;state.loading=false;
+      saveMyTeamContext(teamIdParam,team.name);
       const savedName=getTeamMembership(teamIdParam);
       if(savedName){
         loadMyResult();state.userName=savedName;
@@ -1298,7 +1311,15 @@ function addByCode(){
   } else if(parseTeamHash()){
     loadMyResult();state.screen="team";render();
   } else {
-    loadMyResult();loadTeam();render();
+    const hasResult=loadMyResult();loadTeam();
+    const savedTeam=loadMyTeamContext();
+    if(savedTeam&&sb){
+      state.mode="team";state.teamId=savedTeam.teamId;state.teamName=savedTeam.teamName;
+      const savedName=getTeamMembership(savedTeam.teamId);
+      if(savedName)state.userName=savedName;
+      if(hasResult)state.screen="result";
+    }
+    render();
   }
 })();
 </script>
