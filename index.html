@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>나는 어떤 HRBP일까?</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#FAFBFF 0%,#F0EDFF 40%,#E8F4FD 70%,#FFF5F2 100%);min-height:100vh;color:#1A1A2E}
+.wrap{display:flex;flex-direction:column;align-items:center;padding:20px;min-height:100vh}
+.container{max-width:540px;width:100%}
+.card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.05);margin-bottom:16px}
+.card-bordered{border:2px solid var(--c)}
+.sec-title{font-size:13px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:14px;text-transform:uppercase}
+.tag{font-size:13px;padding:7px 12px;border-radius:10px;display:inline-block;margin:0 6px 6px 0}
+.tag-green{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0}
+.tag-red{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+.btn{width:100%;padding:16px;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{color:#fff;background:linear-gradient(135deg,#6C5CE7,#0984E3);box-shadow:0 4px 16px rgba(108,92,231,.3)}
+.btn-secondary{color:#6C5CE7;background:#fff;border:2px solid #E5E7EB}
+.btn:active{transform:scale(.98)}
+.input{width:100%;padding:12px 14px;font-size:14px;border:2px solid #E5E7EB;border-radius:12px;outline:none;font-family:inherit;transition:border .2s}
+.input:focus{border-color:#6C5CE7}
+.fade-in{opacity:0;transform:translateY(16px);animation:fadeUp .6s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.hidden{display:none!important}
+
+/* Chart */
+.chart-wrap{position:relative;width:100%;padding-bottom:100%;max-width:300px;margin:0 auto;background:#F9FAFB;border-radius:16px;overflow:hidden}
+.chart-wrap .axis-h{position:absolute;top:50%;left:0;right:0;height:1px;background:#E5E7EB}
+.chart-wrap .axis-v{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#E5E7EB}
+.chart-label{position:absolute;font-size:10px;font-weight:600;color:#9CA3AF}
+.chart-quad{position:absolute;font-size:10px;font-weight:600;text-align:center;opacity:.4}
+.dot{position:absolute;transform:translate(-50%,-50%);z-index:10;display:flex;flex-direction:column;align-items:center}
+.dot-circle{width:14px;height:14px;border-radius:50%}
+.dot-name{font-size:9px;font-weight:700;margin-top:3px;background:#fff;padding:1px 5px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.1);white-space:nowrap}
+
+/* Scale buttons */
+.scale-row{display:flex;align-items:center;justify-content:center;gap:0;padding:12px 0}
+.scale-btn{border-radius:50%;border:3px solid #E5E7EB;cursor:pointer;transition:all .15s;background:#F3F4F6;flex-shrink:0}
+.scale-btn:hover{transform:scale(1.1)}
+.scale-btn.selected{transform:scale(1.15)}
+.scale-label{font-size:10px;margin-top:6px;color:#9CA3AF;text-align:center;font-weight:400}
+.scale-col{display:flex;flex-direction:column;align-items:center;flex:1}
+
+/* Responsive */
+@media(max-width:400px){.card{padding:18px}.container{padding:0 4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="container" id="app"></div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const QUESTIONS = [
+  // SE axis (Strategy- / Execution+)
+  {axis:"SE",rev:false,text:"새로운 프로젝트가 시작됐을 때, 나는 먼저...",a:"이 프로젝트의 방향과 목적부터 정리한다",b:"실행 계획과 일정부터 짠다"},
+  {axis:"SE",rev:false,text:"담당 조직에서 갑자기 이슈가 터졌을 때...",a:"근본 원인과 구조적 문제를 먼저 파악한다",b:"당장 해결 가능한 것부터 빠르게 처리한다"},
+  {axis:"SE",rev:true,text:"팀 회의에서 더 집중하게 되는 안건은?",a:"이번 주 각자 할 일과 진행 상황 체크",b:"우리 팀의 중장기 방향성과 역할 논의"},
+  {axis:"SE",rev:false,text:"'오늘 일을 잘 했다'고 느끼는 순간은?",a:"새로운 관점이나 해결 프레임을 제시했을 때",b:"계획한 일을 차질 없이 마무리했을 때"},
+  {axis:"SE",rev:true,text:"보고서를 쓸 때 먼저 손이 가는 건?",a:"데이터 수집과 팩트 정리부터",b:"전체 메시지와 스토리라인 구성부터"},
+  {axis:"SE",rev:false,text:"상사에게 보고할 때 더 자연스러운 방식은?",a:"'왜(Why)' 이걸 해야 하는지 맥락 중심으로",b:"'무엇(What)'을 했고 어디까지 됐는지 중심으로"},
+  {axis:"SE",rev:true,text:"업무 관련 세미나를 고른다면?",a:"실무 노하우, 최신 툴 활용법",b:"경영 전략, 조직 설계 트렌드"},
+  {axis:"SE",rev:false,text:"후배가 고민 상담을 하면 주로 해주는 말은?",a:"한 발 물러서서 큰 그림을 먼저 그려봐",b:"일단 할 수 있는 것부터 하나씩 시작해봐"},
+  // PT axis (People- / Task+)
+  {axis:"PT",rev:false,text:"BP 역할에서 가장 보람을 느끼는 순간은?",a:"구성원이 성장하거나 조직 분위기가 좋아질 때",b:"프로세스가 개선되고 효율이 눈에 띄게 올라갈 때"},
+  {axis:"PT",rev:true,text:"조직 변화를 추진할 때 먼저 하는 것은?",a:"변화의 필요성과 논리적 근거를 정리한다",b:"구성원들이 어떻게 받아들일지 반응을 살핀다"},
+  {axis:"PT",rev:false,text:"채용 면접에서 더 신경 쓰이는 건?",a:"이 사람이 우리 팀과 잘 어울릴 수 있을지",b:"이 사람이 실제 업무를 잘 해낼 수 있을지"},
+  {axis:"PT",rev:false,text:"현업 리더와 미팅할 때 나는...",a:"리더의 고민과 맥락을 먼저 충분히 듣는다",b:"데이터와 현황을 먼저 공유하고 논의를 시작한다"},
+  {axis:"PT",rev:true,text:"업무 중 가장 의미있게 느끼는 시간은?",a:"혼자 집중해서 업무를 깊이 처리하는 시간",b:"사람들과 대화하며 관계를 쌓는 시간"},
+  {axis:"PT",rev:false,text:"동료가 업무로 힘들어할 때 나는...",a:"먼저 다가가서 이야기를 들어준다",b:"도움이 될 만한 해결책이나 자료를 찾아준다"},
+  {axis:"PT",rev:true,text:"프로젝트 성공의 핵심은 무엇이라고 생각해?",a:"체계적인 프로세스와 명확한 기준",b:"구성원들의 몰입과 동기부여"},
+  {axis:"PT",rev:false,text:"팀에서 내 역할이 인정받을 때 더 뿌듯한 건?",a:"사람들이 나를 믿고 의지할 때",b:"내가 만든 결과물이나 시스템이 잘 작동할 때"},
+];
+
+const STRENGTH_QUESTIONS = [
+  {id:"SQ1",text:"동료들이 나에게 가장 자주 도움을 요청하는 영역은?",
+    opts:[
+      {v:"strategy",label:"방향 설정·의사결정 조언"},
+      {v:"system",label:"프로세스 설계·데이터 분석"},
+      {v:"people",label:"소통 중재·관계 조율"},
+      {v:"execution",label:"실행 계획·일정 관리"}
+    ]},
+  {id:"SQ2",text:"최근 가장 좋은 성과를 낸 업무의 성격은?",
+    opts:[
+      {v:"strategy",label:"새로운 방향·프레임 제시"},
+      {v:"system",label:"시스템·제도 구축"},
+      {v:"people",label:"관계 개선·조직 분위기 변화"},
+      {v:"execution",label:"정확하고 빠른 업무 처리"}
+    ]},
+  {id:"SQ3",text:"내가 없으면 팀에서 가장 빠지는 역할은?",
+    opts:[
+      {v:"strategy",label:"큰 그림을 그리고 방향을 잡는 역할"},
+      {v:"system",label:"체계를 만들고 기준을 세우는 역할"},
+      {v:"people",label:"사람들을 연결하고 분위기를 잡는 역할"},
+      {v:"execution",label:"일을 확실하게 마무리하는 역할"}
+    ]},
+  {id:"SQ4",text:"내가 리드했을 때 가장 결과가 좋았던 상황은?",
+    opts:[
+      {v:"strategy",label:"불확실한 상황에서 방향을 정해야 했을 때"},
+      {v:"system",label:"복잡한 것을 정리·구조화해야 했을 때"},
+      {v:"people",label:"갈등이나 소통 문제를 해결해야 했을 때"},
+      {v:"execution",label:"한정된 시간 안에 결과를 내야 했을 때"}
+    ]}
+];
+
+const T = {
+  architect:{name:"조직 설계자",emoji:"🏛️",code:"A",
+    subtitle:"큰 그림을 그리며 사람의 마음을 움직이는 BP",
+    color:"#6C5CE7",colorLight:"#A29BFE",colorBg:"#F3F0FF",
+    desc:"조직의 방향성과 구성원의 성장을 동시에 보는 시야를 가지고 있어요. '왜 이 일을 해야 하는지'를 먼저 생각하고, 사람 중심으로 변화를 이끌어가는 걸 좋아해요.",
+    tendency:["조직 이슈의 본질을 꿰뚫어 보려는 경향","사람의 동기와 니즈를 먼저 읽으려 함","변화의 큰 그림을 그리는 데 에너지를 쏟음","다양한 이해관계를 조율하며 방향을 잡으려 함"],
+    caution:["세부 실행 계획이 부실할 수 있음","현실적 제약을 과소평가하는 경향","아이디어가 많아 집중이 분산될 수 있음","'좋은 방향'에 몰두해 속도가 늦어질 수 있음"],
+    energyUp:["채용 브랜딩 전략 기획","조직문화 진단 및 개선 설계","리더 코칭·이해관계자 설득","인재 육성 로드맵 수립","조직 개편·변화 관리 설계"],
+    energyDown:["반복적인 서류 처리·데이터 입력","단순 일정 조율·행정 업무","정해진 틀대로만 실행하는 운영 업무","디테일한 숫자 검증·리포트 포맷팅"],
+    manual:{
+      request:"일의 배경과 '왜 이걸 해야 하는지'를 먼저 설명해주세요. 의미를 느껴야 에너지가 나는 타입이에요.",
+      feedback:"방향성에 대한 피드백을 먼저 주고, 디테일은 그 다음에 이야기해주세요.",
+      avoid:"맥락 없이 '이거 해주세요'라고만 던지기. 실행 디테일부터 지적하기.",
+      stress:"회의에서 점점 더 추상적인 이야기만 하고, 실행 논의를 계속 미루기 시작해요."
+    },
+    recovery:"조용히 생각을 정리할 시간을 주고, 신뢰하는 사람과 1:1로 고민을 나눌 수 있게 해주세요. 큰 그림을 다시 그릴 수 있으면 회복돼요.",
+    bestMatch:"driver",bestReason:"설계자의 방향 제시 + 드라이버의 추진력 → '기획→실행'이 매끄럽게 이어져요.",
+    tensionMatch:"builder",tensionReason:"둘 다 전략적이지만, 사람 vs 시스템 관점 차이로 우선순위 충돌 가능. 서로의 관점을 '보완'으로 인정하면 최강 조합."
+  },
+  builder:{name:"시스템 빌더",emoji:"⚙️",code:"B",
+    subtitle:"제도와 프로세스로 조직을 체계화하는 BP",
+    color:"#0984E3",colorLight:"#74B9FF",colorBg:"#EBF5FF",
+    desc:"논리적이고 체계적인 사고를 바탕으로 구조와 시스템을 설계하는 걸 좋아해요. 데이터를 근거로 의사결정하고, 반복 가능한 프로세스를 만들어 성과를 내는 데 강점이 있어요.",
+    tendency:["복잡한 문제를 논리적으로 구조화하려는 경향","데이터 기반의 객관적 판단을 선호함","지속 가능한 시스템을 설계하는 데 에너지를 쏟음","문서화·표준화를 통해 지식을 축적하려 함"],
+    caution:["사람의 감정·맥락을 놓칠 수 있음","완벽주의로 일정이 늦어질 수 있음","'최적화'에 집착해 유연성이 떨어질 수 있음","시스템이 준비될 때까지 실행을 미룰 수 있음"],
+    energyUp:["평가·보상 체계 설계","HR 대시보드·데이터 분석","채용 프로세스 구조화·자동화","인사 제도 기획 및 개선","업무 매뉴얼·가이드 문서화"],
+    energyDown:["감정적 갈등 중재·조율","빈번한 1:1 정서적 케어","구조 없이 즉흥적으로 바뀌는 요청","결론 없이 논의만 길어지는 회의"],
+    manual:{
+      request:"데이터와 논리로 설명하고, 충분한 검토 시간을 주세요. '이런 근거가 있어, 어떻게 생각해?'가 효과적이에요.",
+      feedback:"구체적인 사실과 기준을 근거로 피드백해주세요. 감정보다 논리에 반응하는 타입이에요.",
+      avoid:"급하게 '일단 해'라고 밀어붙이기. 근거 없이 방향을 바꾸기.",
+      stress:"사소한 것까지 통제하려 하고, 소통을 줄이면서 혼자 일하기 시작해요."
+    },
+    recovery:"복잡한 문제를 정리할 조용한 시간을 주고, 명확한 우선순위를 함께 정해주세요. '전부 다 완벽하지 않아도 돼'라는 메시지가 도움돼요.",
+    bestMatch:"connector",bestReason:"빌더의 체계 + 커넥터의 현장감 → '제도는 있는데 현장에서 안 돌아가는' 문제를 예방해요.",
+    tensionMatch:"architect",tensionReason:"둘 다 전략적이지만 접근이 달라요. 설계자는 사람 중심, 빌더는 시스템 중심. 초반에 방향 맞추면 강력한 조합."
+  },
+  connector:{name:"피플 커넥터",emoji:"🤝",code:"C",
+    subtitle:"현장에서 사람과 함께 문제를 해결하는 BP",
+    color:"#E17055",colorLight:"#FAB1A0",colorBg:"#FFF5F2",
+    desc:"사람과의 관계에서 에너지를 얻고, 현장의 목소리를 빠르게 읽어내는 능력이 뛰어나요. 구성원의 니즈를 먼저 파악하고, 신뢰를 기반으로 문제를 해결해나가요.",
+    tendency:["빠른 관계 형성과 신뢰 구축에 능한 경향","현장 이슈를 실시간으로 감지하려 함","구성원의 숨은 니즈를 포착하는 공감 능력을 자주 발휘","분위기 메이킹과 소통 촉진에 에너지를 쏟음"],
+    caution:["거절이 어려워 업무가 과중될 수 있음","감정에 휘말려 객관적 판단이 흐려질 수 있음","전략적 우선순위 판단이 어려울 수 있음","체계적 기록·문서화가 부족할 수 있음"],
+    energyUp:["구성원 상담·고충 처리","현업 리더 파트너십 구축","신규 입사자 온보딩 설계·지원","팀빌딩·워크숍 기획 및 퍼실리테이션","조직 내 갈등 중재·소통 촉진"],
+    energyDown:["장기 전략 문서 단독 작성","복잡한 데이터 분석·수치 리포트","사람과 단절된 채 하는 시스템 설계","혼자서 오래 해야 하는 기획 업무"],
+    manual:{
+      request:"따뜻하게 대화하고, '너만 할 수 있는 일'이라는 맥락을 전해주세요. 단, 거절이 어려우니 업무량을 같이 체크해주세요.",
+      feedback:"관계를 해치지 않는 선에서, 개선점은 1:1로 조용히 전해주세요. 공개 비판은 크게 상처받아요.",
+      avoid:"차갑고 사무적으로만 소통하기. 업무 결과만 이야기하고 과정의 노력을 무시하기.",
+      stress:"모든 요청을 다 받아들이면서 자기 업무는 점점 미루기 시작해요. 밝은 척 하지만 표정이 지쳐보여요."
+    },
+    recovery:"업무량을 함께 조정해주고, '네 일도 중요해'라는 메시지를 명확히 전해주세요. 편하게 이야기할 수 있는 시간이 회복에 도움돼요.",
+    bestMatch:"builder",bestReason:"커넥터의 현장감 + 빌더의 체계 → '사람도 챙기고 시스템도 잡는' 이상적인 HR이 가능해요.",
+    tensionMatch:"driver",tensionReason:"커넥터는 관계를, 드라이버는 결과를 먼저 봐서 속도 차이 가능. '사람 이슈는 내가, 실행은 네가'로 분담하면 시너지."
+  },
+  driver:{name:"실행 드라이버",emoji:"🚀",code:"D",
+    subtitle:"맡은 일을 정확하고 빠르게 완수하는 BP",
+    color:"#00B894",colorLight:"#55EFC4",colorBg:"#EFFFFA",
+    desc:"계획을 세우고 실행하는 데 강점이 있어요. 맡은 일은 데드라인 안에 확실하게 처리하고, 꼼꼼함과 추진력으로 팀의 실행력을 높여줘요.",
+    tendency:["높은 실행력과 추진력을 자연스럽게 발휘","정확한 일정 관리와 데드라인 준수에 집중","꼼꼼한 디테일 체크에 에너지를 쏟음","멀티태스킹 속에서도 빠뜨리지 않는 관리력"],
+    caution:["큰 그림을 놓치고 실행에만 매몰될 수 있음","변화나 새로운 시도에 저항감이 있을 수 있음","결과를 급히 추구해 관계가 소홀해질 수 있음","'정해진 대로'에 익숙해 유연한 대응이 어려울 수 있음"],
+    energyUp:["채용 프로세스 운영 (서칭·면접·처우 협의)","HR 운영 실무 최적화·표준화","인사 데이터 정리·정기 리포트 작성","면접 일정 조율·후보자 커뮤니케이션","명확한 목표가 있는 단기 프로젝트"],
+    energyDown:["끝이 안 보이는 방향성 논의","정답이 없는 감정적 대화 중재","장기적이고 추상적인 전략 기획","결론 없이 의견만 나누는 브레인스토밍"],
+    manual:{
+      request:"명확한 기대치와 데드라인을 먼저 제시해주세요. '이거를 언제까지 이 수준으로'가 효과적이에요.",
+      feedback:"구체적으로 '이건 잘했고, 이건 이렇게 바꿔보자' 식으로 명확하게 전해주세요.",
+      avoid:"모호하게 '알아서 잘 해봐'라고 던지기. 중간에 방향을 자주 바꾸기.",
+      stress:"더 빠르게 밀어붙이면서 주변과 단절되기 시작해요. 과정을 건너뛰고 결과만 추구하며 짜증이 늘어나요."
+    },
+    recovery:"작은 성취감을 느낄 수 있는 단기 과업을 주고, 명확한 우선순위를 함께 정해주세요. '이것만 끝내면 돼'라는 경계가 회복에 도움돼요.",
+    bestMatch:"architect",bestReason:"설계자의 비전 + 드라이버의 실행력 → '방향도 맞고 속도도 빠른' 가장 효과적인 조합.",
+    tensionMatch:"connector",tensionReason:"드라이버는 빠른 실행을, 커넥터는 충분한 소통을 원해서 템포 차이 가능. 서로의 속도를 존중하면 균형 잡힌 팀."
+  }
+};
+const TYPES=["architect","builder","connector","driver"];
+const typeFromScores=(se,pt)=>(se<=0&&pt<=0)?"architect":(se<=0&&pt>0)?"builder":(se>0&&pt<=0)?"connector":"driver";
+const strengthMap={strategy:"architect",system:"builder",people:"connector",execution:"driver"};
+const STRENGTH_LABELS={architect:"전략·방향 설정",builder:"체계·시스템 구축",connector:"소통·관계 조율",driver:"실행·완수력"};
+
+/* 1:1 Relationship Guide Data */
+const REL_GUIDE = {
+  "architect>architect":{req:"서로 큰 그림 논의를 즐기지만, 누가 실행할지 꼭 정하세요",fb:"방향성 공감 후 '그래서 구체적으로는?' 질문을 서로 던져주세요",warn:"둘 다 전략만 논의하다 실행이 빠질 수 있어요",synergy:"조직 비전과 변화 관리를 함께 설계하면 깊이 있는 결과물이 나와요"},
+  "architect>builder":{req:"'왜'를 먼저 공유하고, 구조화할 시간을 충분히 주세요",fb:"논리와 데이터로 설명하면 잘 받아들여요",warn:"설계자는 유연하게, 빌더는 체계적으로 — 속도 차이에 주의",synergy:"설계자가 방향을 잡고 빌더가 시스템화하면 지속 가능한 결과물이 나와요"},
+  "architect>connector":{req:"의미와 맥락을 공유하면 커넥터가 현장에서 전파해줄 거예요",fb:"따뜻하게, 1:1로. 공개적 피드백은 피해주세요",warn:"설계자의 추상적 방향이 커넥터에게 막연하게 느껴질 수 있어요",synergy:"설계자가 변화의 방향을, 커넥터가 구성원의 수용을 담당하면 완벽해요"},
+  "architect>driver":{req:"배경(Why)을 먼저 설명한 뒤, 명확한 기대치와 데드라인을 주세요",fb:"구체적으로 '이건 잘했고, 이건 바꿔보자' 식으로",warn:"드라이버에게 모호한 방향만 던지면 답답해해요",synergy:"설계자의 비전 + 드라이버의 실행력 = 가장 효과적인 조합이에요"},
+  "builder>architect":{req:"데이터·논리만 전달하지 말고, '이게 왜 중요한지' 맥락도 같이 주세요",fb:"방향성 먼저 인정하고, 디테일 피드백은 그 다음에",warn:"빌더의 체계 중심 접근이 설계자에겐 '유연하지 않다'로 느껴질 수 있어요",synergy:"빌더의 구조 + 설계자의 방향감이 만나면 전략과 실행이 연결돼요"},
+  "builder>builder":{req:"서로 기준과 프레임을 먼저 맞추고, 역할을 명확히 나누세요",fb:"객관적 데이터로 서로 검증해주면 신뢰가 쌓여요",warn:"둘 다 완벽주의라 의견 충돌 시 평행선을 달릴 수 있어요",synergy:"복잡한 제도 설계를 함께 하면 빈틈 없는 시스템이 나와요"},
+  "builder>connector":{req:"따뜻한 톤으로, 이 일이 사람들에게 어떤 의미인지 함께 설명해주세요",fb:"1:1로 조용히, 관계를 해치지 않는 선에서",warn:"빌더의 직접적·논리적 소통이 커넥터에겐 차갑게 느껴질 수 있어요",synergy:"빌더가 만든 시스템을 커넥터가 현장에 부드럽게 안착시켜요"},
+  "builder>driver":{req:"명확한 기대치·데드라인·기준을 제시하면 바로 실행해요",fb:"구체적 사실 기반으로 명확하게",warn:"빌더가 검토에 시간을 쓰는 동안 드라이버가 답답해할 수 있어요",synergy:"빌더가 설계하고 드라이버가 실행하면 효율 극대화"},
+  "connector>architect":{req:"설계자의 큰 그림을 존중하되, '현장에서는 이런 반응이 있어요'로 보완해주세요",fb:"방향성 먼저 공감하고, 현장 피드백을 추가하는 순서로",warn:"커넥터의 '사람 반응' 중심 피드백이 설계자에겐 실행 저항으로 느껴질 수 있어요",synergy:"커넥터의 현장 인사이트가 설계자의 전략에 현실감을 더해요"},
+  "connector>builder":{req:"감정이 아닌 구체적 사례와 데이터로 전달하면 잘 받아들여요",fb:"논리적 근거를 곁들여 피드백하면 설득력이 올라가요",warn:"커넥터의 감정 중심 소통이 빌더에겐 비효율적으로 느껴질 수 있어요",synergy:"커넥터가 현장 목소리를 모아오면 빌더가 시스템에 반영해요"},
+  "connector>connector":{req:"서로 공감을 잘 하지만, 구체적 액션과 마감을 꼭 정하세요",fb:"따뜻하게 주고받되, '그래서 어떻게 할까?'로 마무리해주세요",warn:"둘 다 거절을 못 해서 서로 업무를 떠넘기는 구조가 될 수 있어요",synergy:"구성원 케어와 소통 촉진에서 최강 팀워크를 발휘해요"},
+  "connector>driver":{req:"결론과 기대치를 먼저 전달하고, 맥락은 간결하게 추가해주세요",fb:"명확하고 구체적으로. 감정적 표현보다 사실 위주로",warn:"커넥터가 관계를 챙기느라 느려지면 드라이버가 답답해할 수 있어요",synergy:"커넥터가 사람 이슈를, 드라이버가 실행을 맡으면 서로 부담이 줄어요"},
+  "driver>architect":{req:"실행 계획뿐 아니라 '왜 이 방향인지' 배경도 같이 공유해주세요",fb:"방향성을 먼저 인정한 후 실행 관점 피드백을",warn:"드라이버의 '빨리 결론 내자'가 설계자에겐 '깊이 없다'로 느껴질 수 있어요",synergy:"드라이버의 실행력이 설계자의 전략을 현실로 만들어요"},
+  "driver>builder":{req:"데이터와 논리 근거를 준비해서 전달하면 검토가 빨라져요",fb:"사실 기반으로, 충분한 검토 시간을 주세요",warn:"드라이버의 '일단 해보자'가 빌더에겐 '준비 안 됐는데'로 느껴질 수 있어요",synergy:"드라이버가 빠르게 실행하고 빌더가 체계를 보완하면 속도+품질 둘 다 잡아요"},
+  "driver>connector":{req:"따뜻한 톤을 추가하고, 업무량이 과하지 않은지 체크해주세요",fb:"1:1로 조용히, 노력을 인정한 뒤 개선점을",warn:"드라이버의 빠른 속도와 직접적 소통이 커넥터에겐 압박으로 느껴질 수 있어요",synergy:"드라이버가 실행을, 커넥터가 사람 케어를 나누면 균형 잡힌 팀"},
+  "driver>driver":{req:"서로 기대치와 역할을 명확히 나누고, 겹치지 않게 하세요",fb:"결과 기반으로 직접적으로. 둘 다 명확한 걸 좋아해요",warn:"둘 다 빠르게 밀어붙여서 관계나 큰 그림이 빠질 수 있어요",synergy:"실행력이 두 배! 단기 프로젝트에서 최강의 효율을 보여요"}
+};
+
+/* Task Recommendations */
+const TASKS = [
+  {name:"채용 브랜딩 기획",lead:"architect",support:"driver"},
+  {name:"채용 프로세스 운영",lead:"driver",support:"connector"},
+  {name:"평가·보상 체계 설계",lead:"builder",support:"architect"},
+  {name:"조직문화 진단·개선",lead:"architect",support:"connector"},
+  {name:"구성원 상담·고충 처리",lead:"connector",support:"architect"},
+  {name:"HR 데이터 분석·대시보드",lead:"builder",support:"driver"},
+  {name:"현업 리더 파트너십",lead:"connector",support:"builder"},
+  {name:"온보딩 설계·운영",lead:"connector",support:"driver"},
+  {name:"인사 제도 기획",lead:"builder",support:"architect"},
+  {name:"HR 운영 최적화·표준화",lead:"driver",support:"builder"},
+];
+
+/* ===== STATE ===== */
+let state = {screen:"intro", qIdx:0, scores:{SE:0,PT:0}, strengthAnswers:[], sqIdx:0, userName:"", members:[]};
+
+/* ===== RENDER ===== */
+const $=id=>document.getElementById(id);
+const app=()=>$("app");
+
+function render(){
+  window.scrollTo(0,0);
+  switch(state.screen){
+    case "intro": renderIntro(); break;
+    case "questions": renderQuestion(); break;
+    case "strength": renderStrength(); break;
+    case "name": renderName(); break;
+    case "result": renderResult(); break;
+    case "team": renderTeam(); break;
+  }
+}
+
+function renderIntro(){
+  app().innerHTML=`
+  <div class="fade-in" style="text-align:center;padding-top:40px">
+    <div style="font-size:56px;margin-bottom:16px">🧭</div>
+    <h1 style="font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.5px;margin-bottom:8px">나는 어떤 HRBP일까?</h1>
+    <p style="font-size:15px;color:#6B7280;margin-bottom:28px;line-height:1.6">HRBP 업무 스타일 진단 · 20문항 · 약 5분</p>
+    <div class="card" style="text-align:left">
+      <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:18px">20개 질문에 답하면, 나의 HRBP 업무 스타일을 알려드려요.</p>
+      ${[["⚡","에너지가 나는 과업 / 깎이는 과업"],["🏆","내가 실제로 잘 발휘하는 강점"],["📋","나와 협업할 때 사용설명서"],["😰","스트레스 시그널 & 회복 방법"],["🤝","팀원별 1:1 소통 가이드"],["📊","과업별 리드/서포트 추천"]].map(([i,t])=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#F9FAFB;border-radius:12px;font-size:14px;color:#374151;margin-bottom:8px"><span style="font-size:18px">${i}</span>${t}</div>`).join("")}
+      <p style="font-size:13px;color:#9CA3AF;margin-top:14px;text-align:center">정답은 없어요 — 직관적으로 골라주세요</p>
+    </div>
+    <button class="btn btn-primary" onclick="startTest()" style="margin-top:16px">테스트 시작하기</button>
+  </div>`;
+}
+
+function renderQuestion(){
+  const q=QUESTIONS[state.qIdx];
+  const total=QUESTIONS.length;
+  const pct=((state.qIdx+1)/total)*100;
+  const colors=["#6C5CE7","#A29BFE","#D1D5DB","#74B9FF","#0984E3"];
+  const labels=["확실히 A","약간 A","중립","약간 B","확실히 B"];
+  const sizes=[46,34,38,34,46];
+
+  app().innerHTML=`
+  <div style="margin-top:20px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${state.qIdx+1} / ${total}</span>
+      <span style="font-size:13px;color:#9CA3AF">${Math.round(pct)}%</span>
+    </div>
+    <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6C5CE7,#0984E3);border-radius:3px;transition:width .5s"></div>
+    </div>
+  </div>
+  <div class="fade-in" style="padding:40px 0 20px;text-align:center">
+    <h2 style="font-size:18px;font-weight:700;line-height:1.5;margin-bottom:28px">${q.text}</h2>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:14px;font-size:13px;color:#374151;line-height:1.5;text-align:center">
+        <span style="font-size:11px;color:#6C5CE7;font-weight:700;display:block;margin-bottom:4px">A</span>${q.a}
+      </div>
+      <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:14px;font-size:13px;color:#374151;line-height:1.5;text-align:center">
+        <span style="font-size:11px;color:#0984E3;font-weight:700;display:block;margin-bottom:4px">B</span>${q.b}
+      </div>
+    </div>
+    <div class="scale-row">
+      ${[-2,-1,0,1,2].map((v,i)=>`
+        <div class="scale-col">
+          <button class="scale-btn" style="width:${sizes[i]}px;height:${sizes[i]}px" onclick="answerQ(${v},${i})" onmouseover="this.style.borderColor='${colors[i]}'" onmouseout="this.style.borderColor='#E5E7EB'"></button>
+          <span class="scale-label">${labels[i]}</span>
+        </div>
+      `).join("")}
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:0 8px;margin-top:4px">
+      <span style="font-size:12px;color:#6C5CE7;font-weight:600">← A</span>
+      <span style="font-size:12px;color:#0984E3;font-weight:600">B →</span>
+    </div>
+  </div>`;
+}
+
+function renderStrength(){
+  const sq=STRENGTH_QUESTIONS[state.sqIdx];
+  const total=STRENGTH_QUESTIONS.length;
+  const qNum=QUESTIONS.length+state.sqIdx+1;
+  const pct=((qNum)/(QUESTIONS.length+total))*100;
+
+  app().innerHTML=`
+  <div style="margin-top:20px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:13px;color:#9CA3AF;font-weight:600">Q${qNum} / ${QUESTIONS.length+total}</span>
+      <span style="font-size:13px;color:#9CA3AF">${Math.round(pct)}%</span>
+    </div>
+    <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6C5CE7,#0984E3);border-radius:3px;transition:width .5s"></div>
+    </div>
+  </div>
+  <div class="fade-in" style="padding:40px 0 20px">
+    <div style="text-align:center;margin-bottom:8px">
+      <span style="font-size:12px;background:#FFFBEB;color:#92400E;padding:4px 10px;border-radius:8px;font-weight:600">🏆 실제 강점 파악</span>
+    </div>
+    <h2 style="font-size:18px;font-weight:700;line-height:1.5;margin-bottom:24px;text-align:center">${sq.text}</h2>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${sq.opts.map((o,i)=>`
+        <button onclick="answerSQ('${o.v}')" style="width:100%;padding:16px 18px;font-size:14px;color:#374151;background:#fff;border:2px solid #E5E7EB;border-radius:14px;cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;line-height:1.5" onmouseover="this.style.borderColor='#6C5CE7';this.style.background='#F9F8FF'" onmouseout="this.style.borderColor='#E5E7EB';this.style.background='#fff'">${o.label}</button>
+      `).join("")}
+    </div>
+  </div>`;
+}
+
+function renderName(){
+  app().innerHTML=`
+  <div class="fade-in" style="padding-top:60px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">✨</div>
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">거의 다 됐어요!</h2>
+    <p style="font-size:14px;color:#6B7280;margin-bottom:32px">팀 조합 분석에 사용할 이름을 입력해주세요</p>
+    <input id="nameInput" class="input" placeholder="이름 (예: 한설)" style="text-align:center;font-size:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')submitName()">
+    <button class="btn btn-primary" onclick="submitName()">결과 보기</button>
+  </div>`;
+  setTimeout(()=>{const inp=$("nameInput");if(inp)inp.focus();},300);
+}
+
+function renderResult(){
+  const tk=typeFromScores(state.scores.SE,state.scores.PT);
+  const t=T[tk];
+  const best=T[t.bestMatch];
+  const tension=T[t.tensionMatch];
+
+  // Strength analysis
+  const sCounts={};
+  state.strengthAnswers.forEach(a=>{sCounts[a]=(sCounts[a]||0)+1;});
+  const sortedS=Object.entries(sCounts).sort((a,b)=>b[1]-a[1]);
+  const topStrength=sortedS[0]?strengthMap[sortedS[0][0]]:tk;
+  const topStrengthLabel=STRENGTH_LABELS[topStrength];
+
+  // Share code
+  const sCode = `${state.userName}:${t.code}:${state.scores.SE}:${state.scores.PT}:${sortedS.map(s=>s[0][0]).join("")}`;
+
+  app().innerHTML=`
+  <div class="fade-in">
+    <!-- Header -->
+    <div style="text-align:center;padding:32px 0 20px">
+      <p style="font-size:14px;color:#9CA3AF;margin-bottom:8px;font-weight:500">당신의 HRBP 유형은</p>
+      <div style="font-size:52px;margin-bottom:8px">${t.emoji}</div>
+      <h1 style="font-size:30px;font-weight:800;color:${t.color};margin-bottom:6px;letter-spacing:-.5px">${t.name}</h1>
+      <p style="font-size:15px;color:#6B7280;font-weight:500">${t.subtitle}</p>
+    </div>
+
+    <!-- Desc -->
+    <div class="card"><p style="font-size:15px;color:#374151;line-height:1.8">${t.desc}</p></div>
+
+    <!-- Share Code -->
+    <div class="card" style="background:${t.colorBg};border:1px solid ${t.colorLight};text-align:center">
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">팀 조합 분석용 공유 코드</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
+        <code id="shareCode" style="font-size:16px;font-weight:700;color:${t.color};background:#fff;padding:10px 18px;border-radius:10px;border:1px solid ${t.colorLight};letter-spacing:1px">${sCode}</code>
+      </div>
+      <button onclick="copyCode()" id="copyBtn" style="font-size:13px;font-weight:600;color:${t.color};background:#fff;border:1px solid ${t.colorLight};padding:8px 20px;border-radius:10px;cursor:pointer">📋 코드 복사</button>
+      <p style="font-size:11px;color:#9CA3AF;margin-top:8px">이 코드를 슬랙이나 카톡에 공유하세요</p>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="sec-title">📍 나의 위치</div>
+      ${makeChart([{name:state.userName||"나",se:state.scores.SE,pt:state.scores.PT,typeKey:tk}])}
+      <div style="display:flex;justify-content:center;gap:20px;margin-top:12px">
+        <div style="text-align:center"><div style="font-size:11px;color:#9CA3AF;font-weight:600">전략↔실행</div><div style="font-size:18px;font-weight:800;color:${t.color}">${state.scores.SE>0?"+":""}${state.scores.SE}</div></div>
+        <div style="width:1px;background:${t.colorLight}"></div>
+        <div style="text-align:center"><div style="font-size:11px;color:#9CA3AF;font-weight:600">관계↔과업</div><div style="font-size:18px;font-weight:800;color:${t.color}">${state.scores.PT>0?"+":""}${state.scores.PT}</div></div>
+      </div>
+    </div>
+
+    <!-- Strength -->
+    <div class="card">
+      <div class="sec-title">🏆 실제 발휘 강점</div>
+      <div style="background:${T[topStrength].colorBg};border:1px solid ${T[topStrength].colorLight};border-radius:14px;padding:18px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:24px">${T[topStrength].emoji}</span>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:${T[topStrength].color}">${topStrengthLabel}</div>
+            <div style="font-size:12px;color:#9CA3AF">동료들이 실제로 인정하는 강점 영역</div>
+          </div>
+        </div>
+        ${topStrength!==tk?`<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px;margin-top:8px"><p style="font-size:13px;color:#92400E;line-height:1.6">💡 성향은 <strong>${t.name}</strong>이지만, 실제 발휘 강점은 <strong>${topStrengthLabel}</strong> 영역이에요. 좋아하는 것과 잘하는 것이 다를 수 있다는 뜻이에요!</p></div>`:`<p style="font-size:13px;color:#059669;margin-top:4px">✅ 성향과 실제 강점이 일치해요! 자연스럽게 잘 발휘되고 있다는 뜻이에요.</p>`}
+      </div>
+    </div>
+
+    <!-- Energy Map -->
+    <div class="card">
+      <div class="sec-title">⚡ 에너지 맵</div>
+      <div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="background:#ECFDF5;color:#059669;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px">🔋 에너지 UP</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${t.energyUp.map(x=>`<span class="tag tag-green">${x}</span>`).join("")}</div>
+      </div>
+      <div style="height:1px;background:#F3F4F6;margin-bottom:14px"></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="background:#FEF2F2;color:#DC2626;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px">🪫 에너지 DOWN</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${t.energyDown.map(x=>`<span class="tag tag-red">${x}</span>`).join("")}</div>
+      </div>
+    </div>
+
+    <!-- Tendency & Caution -->
+    <div class="card">
+      <div class="sec-title">🔍 자연스러운 경향 & ⚠️ 주의할 점</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#059669;margin-bottom:10px">🔍 이런 걸 자연스럽게 발휘해요</p>
+          ${t.tendency.map(s=>`<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:6px;padding-left:8px;border-left:2px solid #BBF7D0">${s}</p>`).join("")}
+        </div>
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#DC2626;margin-bottom:10px">⚠️ 주의할 점</p>
+          ${t.caution.map(c=>`<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:6px;padding-left:8px;border-left:2px solid #FECACA">${c}</p>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <!-- User Manual -->
+    <div class="card" style="border:2px solid ${t.color}">
+      <div class="sec-title">📋 나의 사용설명서</div>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px;margin-top:-8px">팀 노션에 붙여놓고 참고하세요</p>
+      ${[{icon:"📨",label:"나에게 업무 요청할 때",text:t.manual.request},{icon:"💬",label:"나에게 피드백 줄 때",text:t.manual.feedback},{icon:"🚫",label:"이건 피해주세요",text:t.manual.avoid},{icon:"😰",label:"내가 스트레스 받으면",text:t.manual.stress}].map((item,i)=>`
+        <div style="padding:14px 16px;background:${i%2===0?t.colorBg:"#FAFAFA"};border-radius:12px;margin-bottom:${i<3?10:0}px">
+          <div style="font-size:13px;font-weight:700;color:${t.color};margin-bottom:6px">${item.icon} ${item.label}</div>
+          <p style="font-size:14px;color:#374151;line-height:1.7">${item.text}</p>
+        </div>`).join("")}
+    </div>
+
+    <!-- Stress -->
+    <div class="card">
+      <div class="sec-title">🔥 과부하 시그널 & 회복법</div>
+      <div style="background:#FEF2F2;border-radius:14px;padding:18px;border:1px solid #FECACA;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:8px">⚠️ 이런 모습이 보이면 과부하 신호</div>
+        <p style="font-size:14px;color:#374151;line-height:1.7">${t.manual.stress}</p>
+      </div>
+      <div style="background:#ECFDF5;border-radius:14px;padding:18px;border:1px solid #BBF7D0">
+        <div style="font-size:13px;font-weight:700;color:#059669;margin-bottom:8px">💚 이렇게 도와주세요</div>
+        <p style="font-size:14px;color:#374151;line-height:1.7">${t.recovery}</p>
+      </div>
+    </div>
+
+    <!-- Compatibility -->
+    <div class="card">
+      <div class="sec-title">🤝 유형 궁합</div>
+      <div style="background:#F0FDF4;border-radius:14px;padding:18px;border:1px solid #BBF7D0;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:20px">${best.emoji}</span>
+          <span style="font-size:14px;font-weight:700;color:#166534">시너지: ${best.name}</span>
+        </div>
+        <p style="font-size:14px;color:#374151;line-height:1.6">${t.bestReason}</p>
+      </div>
+      <div style="background:#FFFBEB;border-radius:14px;padding:18px;border:1px solid #FDE68A">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:20px">${tension.emoji}</span>
+          <span style="font-size:14px;font-weight:700;color:#92400E">주의: ${tension.name}</span>
+        </div>
+        <p style="font-size:14px;color:#374151;line-height:1.6">${t.tensionReason}</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:12px;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="goTeam()" style="flex:1">👥 팀 조합 보기</button>
+      <button class="btn btn-secondary" onclick="restart()" style="flex:1">다시 테스트</button>
+    </div>
+    <div style="height:32px"></div>
+  </div>`;
+}
+
+function renderTeam(){
+  const myTk=typeFromScores(state.scores.SE,state.scores.PT);
+  if(state.members.length===0){
+    state.members=[{name:state.userName||"나",se:state.scores.SE,pt:state.scores.PT,typeKey:myTk}];
+  }
+
+  // Type counts
+  const typeCounts={};
+  state.members.forEach(m=>{typeCounts[m.typeKey]=(typeCounts[m.typeKey]||0)+1;});
+  const missing=TYPES.filter(t=>!typeCounts[t]);
+
+  // 1:1 guides for "me" to each other member
+  const me=state.members[0];
+  const others=state.members.slice(1);
+
+  app().innerHTML=`
+  <div class="fade-in">
+    <button onclick="goResult()" style="display:flex;align-items:center;gap:6px;font-size:14px;color:#6B7280;background:none;border:none;cursor:pointer;padding:12px 0;font-weight:600;font-family:inherit">← 내 결과로 돌아가기</button>
+    <h2 style="font-size:24px;font-weight:800;margin-bottom:8px">👥 팀 조합 분석</h2>
+    <p style="font-size:14px;color:#9CA3AF;margin-bottom:24px">팀원들의 공유 코드를 붙여넣어 한눈에 비교하세요</p>
+
+    <!-- Chart -->
+    <div class="card">${makeChart(state.members,320)}</div>
+
+    <!-- Type Distribution -->
+    ${state.members.length>1?`
+    <div class="card">
+      <div class="sec-title">📊 팀 인사이트</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        ${TYPES.map(tk=>{const cnt=typeCounts[tk]||0;const t=T[tk];return`
+          <div style="flex:1 1 45%;padding:12px;background:${cnt>0?t.colorBg:"#F9FAFB"};border-radius:12px;border:1px solid ${cnt>0?t.colorLight:"#E5E7EB"};text-align:center">
+            <div style="font-size:20px">${t.emoji}</div>
+            <div style="font-size:12px;font-weight:700;color:${cnt>0?t.color:"#9CA3AF"};margin-top:4px">${t.name}</div>
+            <div style="font-size:18px;font-weight:800;color:${cnt>0?t.color:"#D1D5DB"};margin-top:2px">${cnt}명</div>
+          </div>`;}).join("")}
+      </div>
+      ${missing.length>0?`
+      <div style="background:#FFFBEB;border-radius:12px;padding:14px;border:1px solid #FDE68A">
+        <p style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:4px">💡 우리 팀에 부족한 관점</p>
+        <p style="font-size:14px;color:#374151;line-height:1.6">${missing.map(tk=>T[tk].name).join(", ")} 유형이 없어요. 해당 관점을 의식적으로 보완하면 좋아요.</p>
+      </div>`:`
+      <div style="background:#F0FDF4;border-radius:12px;padding:14px;border:1px solid #BBF7D0">
+        <p style="font-size:13px;font-weight:700;color:#059669;margin-bottom:4px">✨ 균형 잡힌 팀!</p>
+        <p style="font-size:14px;color:#374151;line-height:1.6">4가지 유형이 모두 있어요. 각 유형의 강점을 살려 역할을 나누면 시너지가 날 거예요.</p>
+      </div>`}
+    </div>
+    `:""}
+
+    <!-- 1:1 Relationship Guides -->
+    ${others.length>0?`
+    <div class="card">
+      <div class="sec-title">💬 나 → 팀원 1:1 소통 가이드</div>
+      ${others.map(other=>{
+        const key=me.typeKey+">"+other.typeKey;
+        const guide=REL_GUIDE[key]||REL_GUIDE[me.typeKey+">"+me.typeKey];
+        const ot=T[other.typeKey];
+        return`
+        <div style="border:1px solid ${ot.colorLight};border-radius:14px;padding:16px;margin-bottom:12px;background:${ot.colorBg}22">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:20px">${ot.emoji}</span>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:${ot.color}">${other.name}</div>
+              <div style="font-size:12px;color:#9CA3AF">${ot.name}</div>
+            </div>
+          </div>
+          ${[{icon:"📨",label:"요청할 때",text:guide.req},{icon:"💬",label:"피드백할 때",text:guide.fb},{icon:"⚠️",label:"주의",text:guide.warn},{icon:"✨",label:"시너지",text:guide.synergy}].map((item,i)=>`
+            <div style="padding:10px 12px;background:${i%2===0?"#fff":"#FAFAFA"};border-radius:10px;margin-bottom:${i<3?6:0}px">
+              <span style="font-size:12px;font-weight:700;color:${ot.color}">${item.icon} ${item.label}</span>
+              <p style="font-size:13px;color:#374151;line-height:1.6;margin-top:4px">${item.text}</p>
+            </div>`).join("")}
+        </div>`;}).join("")}
+    </div>`:""}
+
+    <!-- Task Recommendations -->
+    ${state.members.length>1?`
+    <div class="card">
+      <div class="sec-title">📋 과업별 리드/서포트 추천</div>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px">'이 사람만 해라'가 아니라 '이 조합이 시너지 나요'라는 제안이에요</p>
+      ${TASKS.map(task=>{
+        const leads=state.members.filter(m=>m.typeKey===task.lead);
+        const supports=state.members.filter(m=>m.typeKey===task.support);
+        if(leads.length===0&&supports.length===0) return "";
+        return`
+        <div style="padding:14px;background:#F9FAFB;border-radius:12px;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:700;color:#1A1A2E;margin-bottom:8px">${task.name}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${leads.map(l=>`<span style="font-size:12px;padding:4px 10px;background:${T[l.typeKey].colorBg};color:${T[l.typeKey].color};border-radius:8px;border:1px solid ${T[l.typeKey].colorLight};font-weight:600">${T[l.typeKey].emoji} ${l.name} · 리드</span>`).join("")}
+            ${supports.map(s=>`<span style="font-size:12px;padding:4px 10px;background:#F3F4F6;color:#6B7280;border-radius:8px;border:1px solid #E5E7EB">${T[s.typeKey].emoji} ${s.name} · 서포트</span>`).join("")}
+          </div>
+        </div>`;}).join("")}
+    </div>`:""}
+
+    <!-- Member List -->
+    <div class="card">
+      <div class="sec-title">👤 팀원 목록</div>
+      ${state.members.map((m,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${i===0?T[m.typeKey].colorBg:"#F9FAFB"};border-radius:12px;margin-bottom:8px">
+          <span style="font-size:20px">${T[m.typeKey].emoji}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:#1A1A2E">${m.name} ${i===0?`<span style="font-size:11px;color:${T[m.typeKey].color};font-weight:600">(나)</span>`:""}</div>
+            <div style="font-size:12px;color:#9CA3AF">${T[m.typeKey].name} · ${m.se}/${m.pt}</div>
+          </div>
+          ${i>0?`<button onclick="removeMember(${i})" style="background:none;border:none;cursor:pointer;font-size:16px;color:#D1D5DB;padding:4px">✕</button>`:""}
+        </div>`).join("")}
+
+      <!-- Add by code -->
+      <div style="margin-top:16px;padding:16px;background:#F9FAFB;border-radius:14px">
+        <p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">팀원 코드로 추가</p>
+        <p style="font-size:12px;color:#9CA3AF;margin-bottom:12px">팀원이 공유한 코드를 붙여넣으세요. 여러 줄도 가능해요!</p>
+        <textarea id="codeInput" class="input" rows="3" placeholder="예시:&#10;한설:A:-6:3:sp&#10;민수:D:8:5:es" style="resize:vertical;margin-bottom:10px"></textarea>
+        <button class="btn btn-primary" onclick="addByCode()" style="font-size:14px;padding:12px">+ 코드로 추가</button>
+      </div>
+    </div>
+
+    <!-- All types reference -->
+    <div class="card">
+      <div class="sec-title">📖 4가지 유형 참고</div>
+      ${TYPES.map(tk=>{const typ=T[tk];return`
+        <div style="padding:14px;border-left:3px solid ${typ.color};margin-bottom:12px;background:#FAFAFA;border-radius:0 12px 12px 0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:22px">${typ.emoji}</span>
+            <div><div style="font-size:15px;font-weight:700;color:${typ.color}">${typ.name}</div><div style="font-size:12px;color:#9CA3AF">${typ.subtitle}</div></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${typ.energyUp.slice(0,3).map(x=>`<span style="font-size:11px;padding:3px 7px;background:#F0FDF4;color:#166534;border-radius:6px">🔋 ${x}</span>`).join("")}</div>
+        </div>`;}).join("")}
+    </div>
+
+    <div style="height:48px"></div>
+  </div>`;
+}
+
+/* ===== CHART HELPER ===== */
+function makeChart(members,size){
+  size=size||280;
+  let dots=members.map(m=>{
+    const x=((m.pt+16)/32)*100;
+    const y=((m.se+16)/32)*100;
+    const c=T[m.typeKey].color;
+    const cx=Math.min(92,Math.max(8,x));
+    const cy=Math.min(92,Math.max(8,y));
+    return`<div class="dot" style="left:${cx}%;top:${cy}%"><div class="dot-circle" style="background:${c};box-shadow:0 0 0 4px ${c}33,0 2px 8px ${c}44"></div><span class="dot-name" style="color:${c}">${m.name}</span></div>`;
+  }).join("");
+
+  return`
+  <div class="chart-wrap" style="max-width:${size}px">
+    <div class="axis-h"></div><div class="axis-v"></div>
+    <div class="chart-quad" style="top:20%;left:25%;color:#6C5CE7">🏛️ 조직 설계자</div>
+    <div class="chart-quad" style="top:20%;left:75%;color:#0984E3">⚙️ 시스템 빌더</div>
+    <div class="chart-quad" style="top:80%;left:25%;color:#E17055">🤝 피플 커넥터</div>
+    <div class="chart-quad" style="top:80%;left:75%;color:#00B894">🚀 실행 드라이버</div>
+    <div class="chart-label" style="top:6px;left:50%;transform:translateX(-50%)">전략형 ↑</div>
+    <div class="chart-label" style="bottom:6px;left:50%;transform:translateX(-50%)">↓ 실행형</div>
+    <div class="chart-label" style="left:6px;top:50%;transform:translateY(-50%)">관계 ←</div>
+    <div class="chart-label" style="right:6px;top:50%;transform:translateY(-50%)">→ 과업</div>
+    ${dots}
+  </div>`;
+}
+
+/* ===== ACTIONS ===== */
+function startTest(){
+  state={screen:"questions",qIdx:0,scores:{SE:0,PT:0},strengthAnswers:[],sqIdx:0,userName:"",members:[]};
+  render();
+}
+
+function answerQ(val,btnIdx){
+  const q=QUESTIONS[state.qIdx];
+  const actualVal=q.rev?-val:val;
+  state.scores[q.axis]+=actualVal;
+
+  // highlight button
+  const colors=["#6C5CE7","#A29BFE","#D1D5DB","#74B9FF","#0984E3"];
+  const btns=document.querySelectorAll(".scale-btn");
+  btns.forEach((b,i)=>{b.style.pointerEvents="none";});
+  btns[btnIdx].style.background=colors[btnIdx];
+  btns[btnIdx].style.borderColor=colors[btnIdx];
+  btns[btnIdx].style.boxShadow=`0 0 0 4px ${colors[btnIdx]}33`;
+  btns[btnIdx].classList.add("selected");
+
+  setTimeout(()=>{
+    if(state.qIdx+1<QUESTIONS.length){state.qIdx++;state.screen="questions";}
+    else{state.sqIdx=0;state.screen="strength";}
+    render();
+  },450);
+}
+
+function answerSQ(val){
+  state.strengthAnswers.push(val);
+  if(state.sqIdx+1<STRENGTH_QUESTIONS.length){state.sqIdx++;state.screen="strength";}
+  else state.screen="name";
+  render();
+}
+
+function submitName(){
+  const inp=$("nameInput");
+  if(inp&&inp.value.trim()){state.userName=inp.value.trim();}
+  else{state.userName="나";}
+  state.screen="result";
+  render();
+}
+
+function copyCode(){
+  const code=$("shareCode").textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=$("copyBtn");
+    btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="📋 코드 복사";},2000);
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement("textarea");
+    ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    const btn=$("copyBtn");btn.textContent="✅ 복사 완료!";
+    setTimeout(()=>{btn.textContent="📋 코드 복사";},2000);
+  });
+}
+
+function goTeam(){state.screen="team";render();}
+function goResult(){state.screen="result";render();}
+function restart(){startTest();}
+
+function removeMember(idx){
+  if(idx===0)return;
+  state.members.splice(idx,1);
+  render();
+}
+
+function addByCode(){
+  const input=$("codeInput");
+  if(!input||!input.value.trim())return;
+  const lines=input.value.trim().split("\n");
+  const codeMap={A:"architect",B:"builder",C:"connector",D:"driver"};
+  let added=0;
+  lines.forEach(line=>{
+    const parts=line.trim().split(":");
+    if(parts.length>=4){
+      const name=parts[0].trim();
+      const typeCode=parts[1].trim().toUpperCase();
+      const se=parseInt(parts[2]);
+      const pt=parseInt(parts[3]);
+      if(name&&codeMap[typeCode]&&!isNaN(se)&&!isNaN(pt)){
+        // check duplicate
+        if(!state.members.find(m=>m.name===name)){
+          state.members.push({name,se:Math.max(-16,Math.min(16,se)),pt:Math.max(-16,Math.min(16,pt)),typeKey:codeMap[typeCode]});
+          added++;
+        }
+      }
+    }
+  });
+  if(added>0){input.value="";render();}
+  else{input.style.borderColor="#DC2626";setTimeout(()=>{input.style.borderColor="#E5E7EB";},2000);}
+}
+
+/* ===== INIT ===== */
+render();
+</script>
+</body>
+</html>
