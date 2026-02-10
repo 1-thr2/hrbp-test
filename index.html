@@ -351,6 +351,60 @@ const TASKS = [
   {name:"HR 운영 최적화·표준화",lead:"driver",support:"builder"},
 ];
 
+/* ===== TEAM ANALYSIS HELPERS ===== */
+function analyzeTeamComposition(members){
+  const zones={strategy:0,execution:0,people:0,task:0};
+  members.forEach(m=>{
+    if(m.se<=-3)zones.strategy++;else if(m.se>=3)zones.execution++;
+    if(m.pt<=-3)zones.people++;else if(m.pt>=3)zones.task++;
+  });
+  const total=members.length;
+  const tips=[];
+  if(zones.strategy>=total*0.5&&zones.execution<total*0.3)
+    tips.push({icon:"🎯",text:"전략형이 많고 실행형이 적어요. 회의에서 방향 논의는 잘 되지만, '그래서 누가 언제까지?'가 빠지기 쉬워요. 회의 마지막 5분은 반드시 실행 항목을 정리하세요."});
+  if(zones.execution>=total*0.5&&zones.strategy<total*0.3)
+    tips.push({icon:"⚡",text:"실행형 중심 팀이에요. 빠르게 결과를 내지만, '이게 왜 필요한지' 논의가 생략되기 쉬워요. 월 1회 '우리 방향 맞나?' 체크 시간을 잡아보세요."});
+  if(zones.people>=total*0.5&&zones.task<total*0.3)
+    tips.push({icon:"💬",text:"관계 중심 성향이 강한 팀이에요. 구성원 케어는 잘 되지만, 데이터 기반 판단이 약해질 수 있어요. 주요 의사결정엔 반드시 데이터 근거를 넣으세요."});
+  if(zones.task>=total*0.5&&zones.people<total*0.3)
+    tips.push({icon:"📊",text:"과업 중심 팀이에요. 업무 처리는 효율적이지만, 팀원의 감정 이슈가 수면 위로 안 올라올 수 있어요. 월 1회 '요즘 어때?' 체크인을 넣는 걸 추천해요."});
+  if(tips.length===0){
+    const hasVariety=(zones.strategy>0&&zones.execution>0)||(zones.people>0&&zones.task>0);
+    if(hasVariety)tips.push({icon:"✨",text:"다양한 관점이 고르게 분포된 팀이에요. 각자의 강점을 살려 역할을 나누면 시너지가 날 거예요. 의견이 다를 때 '결정 기준'을 미리 합의해두면 갈등을 예방할 수 있어요."});
+    else tips.push({icon:"🤝",text:"비슷한 성향의 팀원이 많아서 소통은 편하지만, 같은 맹점을 공유할 수 있어요. '우리가 놓치고 있는 관점은?'을 의식적으로 질문해보세요."});
+  }
+  if(zones.strategy>0&&zones.execution>0&&tips.length<3)
+    tips.push({icon:"🔗",text:"전략형과 실행형이 함께 있어요. '큰 그림 → 구체 실행'으로 이어지는 워크플로를 만들면 최고의 시너지를 낼 수 있어요."});
+  return tips.slice(0,3);
+}
+
+function findConflictPairs(members){
+  const pairs=[];
+  for(let i=0;i<members.length;i++){
+    for(let j=i+1;j<members.length;j++){
+      const a=members[i],b=members[j];
+      const baseA=getBaseType(a.typeKey),baseB=getBaseType(b.typeKey);
+      const tA=T[a.typeKey],tB=T[b.typeKey];
+      const isTension=(tA.tensionMatch===baseB)||(tB.tensionMatch===baseA);
+      const dist=Math.abs(a.se-b.se)+Math.abs(a.pt-b.pt);
+      if(isTension||dist>=16){
+        const reason=tA.tensionMatch===baseB?tA.tensionReason:(tB.tensionMatch===baseA?tB.tensionReason:"성향 차이가 커서 의사소통 방식이나 업무 속도에서 마찰이 생길 수 있어요.");
+        const keyAB=baseA+">"+baseB;const keyBA=baseB+">"+baseA;
+        const guide=REL_GUIDE[keyAB]||REL_GUIDE[keyBA];
+        const tip=guide?guide.synergy:"서로의 차이를 '보완'으로 인정하고 역할을 나누면 오히려 강점이 돼요.";
+        pairs.push({a,b,dist,reason,tip,isTension});
+      }
+    }
+  }
+  pairs.sort((x,y)=>(y.isTension?1:0)-(x.isTension?1:0)||y.dist-x.dist);
+  return pairs.slice(0,3);
+}
+
+function getPersonTasks(member){
+  const base=getBaseType(member.typeKey);
+  return{leadTasks:TASKS.filter(t=>t.lead===base).map(t=>t.name),supportTasks:TASKS.filter(t=>t.support===base).map(t=>t.name)};
+}
+
 /* ===== SUPABASE ===== */
 const SB_URL = 'https://vzygascbawpkzbbmaoef.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6eWdhc2NiYXdwa3piYm1hb2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2OTc5NDUsImV4cCI6MjA4NjI3Mzk0NX0.Vu3qCnxA9aP8GoMKS1huHGYRTYrMIytjmUzHhZ1NPiA';
@@ -846,11 +900,6 @@ function renderTeam(){
   state.members.forEach(m=>{typeCounts[m.typeKey]=(typeCounts[m.typeKey]||0)+1;});
   const missing=TYPES.filter(t=>!typeCounts[t]);
 
-  // Selected member for relationship network
-  const selIdx=Math.min(state.selectedMember||0,state.members.length-1);
-  const selMember=state.members[selIdx];
-  const selOthers=state.members.filter((_,i)=>i!==selIdx);
-
   app().innerHTML=`
   <div class="fade-in">
     ${state.userName?`<button onclick="goResult()" style="display:flex;align-items:center;gap:6px;font-size:14px;color:#6B7280;background:none;border:none;cursor:pointer;padding:12px 0;font-weight:600;font-family:inherit">← 내 결과로 돌아가기</button>`:''}
@@ -860,94 +909,90 @@ function renderTeam(){
     <!-- Chart -->
     <div class="card">${makeChart(state.members,320)}</div>
 
-    <!-- Type Distribution -->
+    <!-- ① Team Meeting Guide -->
     ${state.members.length>1?`
-    <div class="card">
-      <div class="sec-title">📊 팀 인사이트</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-        ${TYPES.map(tk=>{const cnt=typeCounts[tk]||0;const t=T[tk];return`
-          <div style="flex:1 1 30%;min-width:90px;padding:10px 6px;background:${cnt>0?t.colorBg:"#F9FAFB"};border-radius:12px;border:1px solid ${cnt>0?t.colorLight:"#E5E7EB"};text-align:center">
-            <div style="font-size:18px">${t.emoji}</div>
-            <div style="font-size:11px;font-weight:700;color:${cnt>0?t.color:"#9CA3AF"};margin-top:3px">${t.name}</div>
-            <div style="font-size:16px;font-weight:800;color:${cnt>0?t.color:"#D1D5DB"};margin-top:1px">${cnt}명</div>
-          </div>`;}).join("")}
-      </div>
-      ${missing.length>0&&missing.length<=5?`
-      <div style="background:#FFFBEB;border-radius:12px;padding:14px;border:1px solid #FDE68A">
-        <p style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:4px">💡 우리 팀에 부족한 관점</p>
-        <p style="font-size:14px;color:#374151;line-height:1.6">${missing.map(tk=>T[tk].name).join(", ")} 유형이 없어요. 해당 관점을 의식적으로 보완하면 좋아요.</p>
-      </div>`:missing.length===0?`
-      <div style="background:#F0FDF4;border-radius:12px;padding:14px;border:1px solid #BBF7D0">
-        <p style="font-size:13px;font-weight:700;color:#059669;margin-bottom:4px">✨ 다양한 관점의 팀!</p>
-        <p style="font-size:14px;color:#374151;line-height:1.6">9가지 유형이 모두 있어요. 각 유형의 강점을 살려 역할을 나누면 시너지가 날 거예요.</p>
-      </div>`:``}
-    </div>
-    `:""}
-
-    <!-- Relationship Network -->
-    ${selOthers.length>0?`
-    <div class="card">
-      <div class="sec-title">🤝 1:1 소통 가이드</div>
-      <p style="font-size:13px;color:#9CA3AF;margin-bottom:16px">기준이 되는 사람을 선택하면, 그 사람이 다른 팀원에게 어떻게 다가가면 좋은지 알려드려요</p>
-
-      <!-- Member selector tabs -->
-      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px">
-        ${state.members.map((m,i)=>{
-          const t=T[m.typeKey];
-          const isSel=i===selIdx;
-          return`<button onclick="selectMember(${i})" style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:2px solid ${isSel?t.color:'#E5E7EB'};background:${isSel?t.colorBg:'#fff'};cursor:pointer;transition:all .15s;font-family:inherit">
-            <span style="font-size:16px">${t.emoji}</span>
-            <span style="font-size:13px;font-weight:${isSel?700:500};color:${isSel?t.color:'#6B7280'}">${m.name}</span>
-          </button>`;
-        }).join('')}
-      </div>
-
-      <div style="text-align:center;margin-bottom:16px">
-        <span style="font-size:24px">${T[selMember.typeKey].emoji}</span>
-        <span style="font-size:17px;font-weight:800;color:${T[selMember.typeKey].color};margin-left:6px">${selMember.name}</span>
-        <span style="font-size:14px;color:#9CA3AF"> 기준</span>
-        <p style="font-size:12px;color:#9CA3AF;margin-top:4px">${selMember.name}이(가) 각 팀원에게 다가갈 때 이렇게 하면 좋아요</p>
-      </div>
-
-      ${selOthers.map(other=>{
-        const key=getBaseType(selMember.typeKey)+">"+getBaseType(other.typeKey);
-        const guide=REL_GUIDE[key]||REL_GUIDE[getBaseType(selMember.typeKey)+">"+getBaseType(selMember.typeKey)];
-        const ot=T[other.typeKey];
-        return`
-        <div style="border:1px solid ${ot.colorLight};border-radius:14px;padding:16px;margin-bottom:12px;background:${ot.colorBg}22">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <span style="font-size:20px">${ot.emoji}</span>
-            <div>
-              <div style="font-size:15px;font-weight:700;color:${ot.color}">${other.name}</div>
-              <div style="font-size:12px;color:#9CA3AF">${ot.name}</div>
-            </div>
-            <span style="margin-left:auto;font-size:11px;color:#9CA3AF;background:#F3F4F6;padding:3px 8px;border-radius:6px">→ ${selMember.name}이(가) ${other.name}에게</span>
-          </div>
-          ${[{icon:"📨",label:"요청할 때",text:guide.req},{icon:"💬",label:"피드백할 때",text:guide.fb},{icon:"⚠️",label:"주의",text:guide.warn},{icon:"✨",label:"시너지",text:guide.synergy}].map((item,i)=>`
-            <div style="padding:10px 12px;background:${i%2===0?"#fff":"#FAFAFA"};border-radius:10px;margin-bottom:${i<3?6:0}px">
-              <span style="font-size:12px;font-weight:700;color:${ot.color}">${item.icon} ${item.label}</span>
-              <p style="font-size:13px;color:#374151;line-height:1.6;margin-top:4px">${item.text}</p>
-            </div>`).join("")}
-        </div>`;}).join("")}
+    <div class="card" style="border:2px solid #C4B5FD;background:linear-gradient(135deg,#FAFBFF 0%,#F3F0FF 100%)">
+      <div class="sec-title">🗣️ 우리 팀 회의 가이드</div>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px">팀 유형 조합을 분석해서 만든 맞춤 가이드예요</p>
+      ${analyzeTeamComposition(state.members).map(tip=>`
+        <div style="padding:14px;background:#fff;border-radius:12px;margin-bottom:8px;border:1px solid #E5E7EB">
+          <p style="font-size:14px;color:#374151;line-height:1.7"><span style="font-size:16px;margin-right:4px">${tip.icon}</span>${tip.text}</p>
+        </div>`).join("")}
     </div>`:""}
 
-    <!-- Task Recommendations -->
+    <!-- ② Conflict Prediction -->
+    ${(()=>{
+      if(state.members.length<2)return'';
+      const conflicts=findConflictPairs(state.members);
+      const allPairs=[];
+      for(let i=0;i<state.members.length;i++)for(let j=i+1;j<state.members.length;j++)allPairs.push([i,j]);
+      const conflictNames=new Set(conflicts.map(c=>c.a.name+'-'+c.b.name));
+      const okPairs=allPairs.filter(([i,j])=>!conflictNames.has(state.members[i].name+'-'+state.members[j].name));
+      return`
+    <div class="card">
+      <div class="sec-title">⚡ 갈등 예측 & 시너지</div>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px">마찰 가능성이 높은 조합만 골라 보여드려요</p>
+      ${conflicts.length>0?conflicts.map(c=>{
+        const tA=T[c.a.typeKey],tB=T[c.b.typeKey];
+        return`
+        <div style="border:1px solid #FECACA;border-radius:14px;padding:16px;margin-bottom:12px;background:#FEF2F222">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:700;color:#DC2626;background:#FEE2E2;padding:3px 8px;border-radius:6px">⚠️ 주의 조합</span>
+            <span style="font-size:14px;font-weight:700;color:#374151">${tA.emoji} ${c.a.name}</span>
+            <span style="font-size:12px;color:#9CA3AF">↔</span>
+            <span style="font-size:14px;font-weight:700;color:#374151">${tB.emoji} ${c.b.name}</span>
+          </div>
+          <p style="font-size:13px;color:#374151;line-height:1.7;margin-bottom:10px">${c.reason}</p>
+          <div style="padding:10px 12px;background:#F0FDF4;border-radius:10px;border:1px solid #BBF7D0">
+            <span style="font-size:12px;font-weight:700;color:#059669">💡 이렇게 풀어보세요</span>
+            <p style="font-size:13px;color:#374151;line-height:1.6;margin-top:4px">${c.tip}</p>
+          </div>
+        </div>`;}).join(''):`
+        <div style="padding:16px;background:#F0FDF4;border-radius:12px;border:1px solid #BBF7D0;text-align:center">
+          <p style="font-size:14px;color:#059669;font-weight:600">✨ 특별한 갈등 리스크가 없는 조합이에요!</p>
+        </div>`}
+      ${okPairs.length>0?`
+      <div style="margin-top:12px;padding:12px;background:#F9FAFB;border-radius:12px">
+        <p style="font-size:12px;color:#059669;font-weight:600;margin-bottom:6px">👍 잘 맞는 조합</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${okPairs.map(([i,j])=>{const a=state.members[i],b=state.members[j];return`<span style="font-size:12px;padding:4px 10px;background:#F0FDF4;color:#166534;border-radius:8px;border:1px solid #BBF7D0">${T[a.typeKey].emoji} ${a.name} · ${T[b.typeKey].emoji} ${b.name}</span>`;}).join('')}
+        </div>
+      </div>`:''}
+    </div>`;})()}
+
+    <!-- ③ Person-centric Task Assignment -->
     ${state.members.length>1?`
     <div class="card">
-      <div class="sec-title">📋 과업별 리드/서포트 추천</div>
-      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px">'이 사람만 해라'가 아니라 '이 조합이 시너지 나요'라는 제안이에요</p>
-      ${TASKS.map(task=>{
-        const leads=state.members.filter(m=>getBaseType(m.typeKey)===task.lead);
-        const supports=state.members.filter(m=>getBaseType(m.typeKey)===task.support);
-        if(leads.length===0&&supports.length===0) return "";
+      <div class="sec-title">📋 팀원별 과업 적합도</div>
+      <p style="font-size:12px;color:#9CA3AF;margin-bottom:14px">'이 사람만 해라'가 아니라 '이 사람이 맡으면 잘 맞아요'라는 제안이에요</p>
+      ${state.members.map(m=>{
+        const t=T[m.typeKey];
+        const tasks=getPersonTasks(m);
+        if(tasks.leadTasks.length===0&&tasks.supportTasks.length===0)return'';
         return`
-        <div style="padding:14px;background:#F9FAFB;border-radius:12px;margin-bottom:8px">
-          <div style="font-size:14px;font-weight:700;color:#1A1A2E;margin-bottom:8px">${task.name}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">
-            ${leads.map(l=>`<span style="font-size:12px;padding:4px 10px;background:${T[l.typeKey].colorBg};color:${T[l.typeKey].color};border-radius:8px;border:1px solid ${T[l.typeKey].colorLight};font-weight:600">${T[l.typeKey].emoji} ${l.name} · 리드</span>`).join("")}
-            ${supports.map(s=>`<span style="font-size:12px;padding:4px 10px;background:#F3F4F6;color:#6B7280;border-radius:8px;border:1px solid #E5E7EB">${T[s.typeKey].emoji} ${s.name} · 서포트</span>`).join("")}
+        <div style="border:1px solid ${t.colorLight};border-radius:14px;padding:16px;margin-bottom:12px;background:${t.colorBg}22">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:20px">${t.emoji}</span>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:${t.color}">${m.name}</div>
+              <div style="font-size:12px;color:#9CA3AF">${t.name}</div>
+            </div>
           </div>
-        </div>`;}).join("")}
+          ${tasks.leadTasks.length>0?`
+          <div style="margin-bottom:8px">
+            <span style="font-size:12px;font-weight:700;color:${t.color}">🎯 리드 적합</span>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+              ${tasks.leadTasks.map(n=>`<span style="font-size:12px;padding:5px 10px;background:${t.colorBg};color:${t.color};border-radius:8px;border:1px solid ${t.colorLight};font-weight:600">${n}</span>`).join('')}
+            </div>
+          </div>`:''}
+          ${tasks.supportTasks.length>0?`
+          <div>
+            <span style="font-size:12px;font-weight:700;color:#6B7280">🤝 서포트 적합</span>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+              ${tasks.supportTasks.map(n=>`<span style="font-size:12px;padding:5px 10px;background:#F3F4F6;color:#6B7280;border-radius:8px;border:1px solid #E5E7EB">${n}</span>`).join('')}
+            </div>
+          </div>`:''}
+        </div>`;}).join('')}
     </div>`:""}
 
     <!-- Member List -->
@@ -990,17 +1035,22 @@ function renderTeam(){
       <button class="btn btn-primary" onclick="copyTeamLink()" id="teamLinkBtn" style="font-size:14px;padding:12px">🔗 팀 링크 복사</button>
     </div>`:"")}
 
-    <!-- All types reference -->
+    <!-- All types reference (collapsible) -->
     <div class="card">
-      <div class="sec-title">📖 9가지 유형 참고</div>
-      ${TYPES.map(tk=>{const typ=T[tk];return`
-        <div style="padding:14px;border-left:3px solid ${typ.color};margin-bottom:12px;background:#FAFAFA;border-radius:0 12px 12px 0">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span style="font-size:22px">${typ.emoji}</span>
-            <div><div style="font-size:15px;font-weight:700;color:${typ.color}">${typ.name}</div><div style="font-size:12px;color:#9CA3AF">${typ.subtitle}</div></div>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${typ.energyUp.slice(0,3).map(x=>`<span style="font-size:11px;padding:3px 7px;background:#F0FDF4;color:#166534;border-radius:6px">🔋 ${x}</span>`).join("")}</div>
-        </div>`;}).join("")}
+      <button onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('span:last-child').textContent=this.nextElementSibling.classList.contains('hidden')?'▸':'▾'" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:0;font-family:inherit">
+        <span class="sec-title" style="margin-bottom:0">📖 9가지 유형 참고</span>
+        <span style="font-size:14px;color:#9CA3AF">▸</span>
+      </button>
+      <div class="hidden" style="margin-top:14px">
+        ${TYPES.map(tk=>{const typ=T[tk];return`
+          <div style="padding:12px;border-left:3px solid ${typ.color};margin-bottom:8px;background:#FAFAFA;border-radius:0 10px 10px 0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">${typ.emoji}</span>
+              <span style="font-size:13px;font-weight:700;color:${typ.color}">${typ.name}</span>
+              <span style="font-size:11px;color:#9CA3AF">${typ.subtitle}</span>
+            </div>
+          </div>`;}).join("")}
+      </div>
     </div>
 
     <div style="height:48px"></div>
@@ -1035,45 +1085,6 @@ function makeChart(members,size){
 }
 
 /* ===== RELATIONSHIP NETWORK ===== */
-function makeRelNetwork(members,selIdx){
-  const count=members.length;
-  if(count<2)return'';
-  const size=280;
-  const cx=size/2,cy=size/2;
-  const r=count<=3?80:count<=5?95:100;
-  const pos=[];
-  for(let i=0;i<count;i++){
-    const angle=(2*Math.PI*i/count)-Math.PI/2;
-    pos.push({x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)});
-  }
-  let lines='';
-  for(let i=0;i<count;i++){
-    for(let j=i+1;j<count;j++){
-      const isSel=i===selIdx||j===selIdx;
-      const c=isSel?T[members[selIdx].typeKey].color:'#E5E7EB';
-      lines+=`<line x1="${pos[i].x.toFixed(1)}" y1="${pos[i].y.toFixed(1)}" x2="${pos[j].x.toFixed(1)}" y2="${pos[j].y.toFixed(1)}" stroke="${c}" stroke-width="${isSel?2.5:1}" opacity="${isSel?0.5:0.2}" stroke-linecap="round"/>`;
-    }
-  }
-  const nodes=members.map((m,i)=>{
-    const t=T[m.typeKey];
-    const isSel=i===selIdx;
-    const s=isSel?54:44;
-    return`<div onclick="selectMember(${i})" style="position:absolute;left:${(pos[i].x/size*100).toFixed(1)}%;top:${(pos[i].y/size*100).toFixed(1)}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;z-index:${isSel?2:1}">
-      <div style="width:${s}px;height:${s}px;border-radius:50%;background:${isSel?t.color:'#fff'};border:3px solid ${t.color};display:flex;align-items:center;justify-content:center;font-size:${isSel?24:18}px;box-shadow:${isSel?'0 4px 14px '+t.color+'44':'0 2px 6px rgba(0,0,0,.08)'};margin:0 auto;transition:all .15s">${t.emoji}</div>
-      <div style="font-size:${isSel?12:11}px;font-weight:${isSel?800:600};color:${isSel?t.color:'#6B7280'};margin-top:4px;white-space:nowrap">${m.name}</div>
-    </div>`;
-  }).join('');
-  return`<div style="position:relative;width:100%;max-width:${size}px;height:${size}px;margin:0 auto">
-    <svg viewBox="0 0 ${size} ${size}" style="position:absolute;inset:0;width:100%;height:100%">${lines}</svg>
-    ${nodes}
-  </div>`;
-}
-
-function selectMember(idx){
-  state.selectedMember=idx;
-  skipScroll=true;
-  render();
-}
 
 /* ===== ACTIONS ===== */
 function startTest(){
