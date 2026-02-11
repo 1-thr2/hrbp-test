@@ -359,19 +359,24 @@ const getFlavorKey=(cs,di)=>(cs<=0?"C-":"C+")+(di<=0?"D-":"D+");
 const TASK_PHASES = [
   {id:"direction",name:"방향 설정",icon:"🧭",desc:"왜 하는지, 어디로 가는지 결정",
     bestTypes:["architect","strategist","allrounder"],
-    goodTypes:["builder","facilitator"]},
+    goodTypes:["builder","facilitator"],
+    styleFit:{cs:"change",di:null,note:"변화를 추구하는 성향이 새 방향 제시에 유리해요"}},
   {id:"design",name:"체계 설계",icon:"📐",desc:"프로세스, 기준, 구조 만들기",
     bestTypes:["builder","taskmaster","architect"],
-    goodTypes:["strategist","allrounder"]},
+    goodTypes:["strategist","allrounder"],
+    styleFit:{cs:"stable",di:"data",note:"안정+데이터 성향이 꼼꼼한 설계에 강해요"}},
   {id:"communication",name:"이해관계자 소통",icon:"💬",desc:"설득, 공감대 형성, 갈등 조율",
     bestTypes:["connector","facilitator","architect"],
-    goodTypes:["allrounder","executor"]},
+    goodTypes:["allrounder","executor"],
+    styleFit:{cs:null,di:"intuition",note:"직관 성향이 공감·스토리 기반 설득에 강해요"}},
   {id:"execution",name:"실행 운영",icon:"⚡",desc:"계획을 실제로 돌리고, 마감 지키기",
     bestTypes:["driver","executor","taskmaster"],
-    goodTypes:["connector","allrounder"]},
+    goodTypes:["connector","allrounder"],
+    styleFit:{cs:"stable",di:null,note:"안정 성향이 일관된 운영과 마감 관리에 강해요"}},
   {id:"analysis",name:"데이터 분석",icon:"📊",desc:"결과 측정, 효과 검증, 개선점 도출",
     bestTypes:["builder","taskmaster","driver"],
-    goodTypes:["architect","strategist"]}
+    goodTypes:["architect","strategist"],
+    styleFit:{cs:null,di:"data",note:"데이터 성향이 수치 기반 분석에 강해요"}}
 ];
 
 const HR_PROJECTS = [
@@ -1292,6 +1297,22 @@ function renderTeam(){
           ${weakGap?`<div style="margin-top:8px;padding:10px 12px;background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A">
             <p style="font-size:12px;color:#92400E;line-height:1.6">${phaseWeakTips[p.id]}</p>
           </div>`:''}
+          ${(()=>{
+            if(!p.styleFit)return'';
+            const hasCS=state.members.some(m=>m.cs!==undefined&&m.cs!==null);
+            if(!hasCS)return'';
+            const sf=p.styleFit;
+            const styleMatch=state.members.filter(m=>{
+              let fit=true;
+              if(sf.cs==='change')fit=fit&&(m.cs||0)<0;
+              if(sf.cs==='stable')fit=fit&&(m.cs||0)>0;
+              if(sf.di==='data')fit=fit&&(m.di||0)<0;
+              if(sf.di==='intuition')fit=fit&&(m.di||0)>0;
+              return fit;
+            });
+            if(styleMatch.length===0)return`<div style="margin-top:6px;font-size:11px;color:#9CA3AF;line-height:1.5">💡 ${sf.note} — 이 팀에선 해당 스타일이 없어서 의식적으로 보완하세요.</div>`;
+            return`<div style="margin-top:6px;font-size:11px;color:#6B7280;line-height:1.5">💡 ${sf.note}: <b>${styleMatch.map(m=>m.name).join(', ')}</b></div>`;
+          })()}
         </div>`;}).join('')}
     </div>`;})():""}
 
@@ -1325,6 +1346,22 @@ function renderTeam(){
             <div style="padding:8px 10px;background:#FEF2F2;border-radius:8px"><span style="font-size:11px;font-weight:700;color:#DC2626">⚠️ 주의</span><p style="font-size:12px;color:#374151;line-height:1.5;margin-top:3px">${guide.warn}</p></div>
             <div style="padding:8px 10px;background:#F0FDF4;border-radius:8px"><span style="font-size:11px;font-weight:700;color:#059669">✨ 시너지</span><p style="font-size:12px;color:#374151;line-height:1.5;margin-top:3px">${guide.synergy}</p></div>
           </div>
+          ${(other.cs!==undefined&&other.cs!==null)?(()=>{
+            const tips=[];
+            const oCS=other.cs||0,oD=other.di||0;
+            const mCS=me.cs||0,mD=me.di||0;
+            if(oD<0)tips.push('📊 데이터형 — 제안할 때 숫자 근거를 먼저 보여주세요');
+            if(oD>0)tips.push('💡 직관형 — 현장 사례와 경험담으로 접근하면 잘 통해요');
+            if(oCS<0&&mCS>=0)tips.push('🔄 변화 추구형 — 새로운 시도에 열려있으니 혁신 아이디어를 함께 논의해보세요');
+            if(oCS>0&&mCS<=0)tips.push('🛡️ 안정 추구형 — 변화를 제안할 땐 기존 체계 존중하면서 단계적으로 접근하세요');
+            if(oCS<0&&mCS<0)tips.push('🔄 둘 다 변화형 — 함께 새로운 시도를 밀어붙일 수 있지만, 리스크 체크를 서로 챙겨주세요');
+            if(oCS>0&&mCS>0)tips.push('🛡️ 둘 다 안정형 — 안정적이지만 변화가 필요할 때 서로 용기를 줄 수 있어요');
+            return tips.length>0?`
+          <div style="margin-top:8px;padding:8px 10px;background:#F3F0FF;border-radius:8px;border:1px solid #E5E7EB">
+            <span style="font-size:10px;font-weight:700;color:#6C5CE7">🎨 업무 스타일 팁</span>
+            ${tips.map(t=>`<p style="font-size:11px;color:#374151;line-height:1.5;margin-top:3px">${t}</p>`).join('')}
+          </div>`:'';
+          })():''}
         </div>`;}).join('')}
     </div>`;})()}
 
