@@ -894,7 +894,7 @@ function renderResult(){
         const level=isBest?'best':isGood?'good':'neutral';
         const bg=level==='best'?t.colorBg:level==='good'?'#F0FDF4':'#F9FAFB';
         const border=level==='best'?t.colorLight:level==='good'?'#BBF7D0':'#E5E7EB';
-        const badge=level==='best'?'⭐ 최적':'👍 잘 맞음':'';
+        const badge=level==='best'?'⭐ 최적':level==='good'?'👍 잘 맞음':'';
         return`
         <div style="padding:12px 14px;border:1px solid ${border};border-radius:12px;margin-bottom:8px;background:${bg}">
           <div style="display:flex;align-items:center;gap:8px">
