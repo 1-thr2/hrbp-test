@@ -422,6 +422,22 @@ function analyzeTeamComposition(members){
   const tips=[];
   const total=members.length;
   const nl=(arr)=>arr.map(m=>m.name).join(', ');
+  // ── 플레이버 이름으로 부르기 ──
+  const hasFL=members.some(m=>m.cs!==undefined&&m.cs!==null);
+  const mfl=(m)=>{
+    if(!hasFL||m.cs===undefined||m.cs===null)return`${m.name}(${T[m.typeKey].name})`;
+    const fk=getFlavorKey(m.cs,m.di||0);
+    const fl=FLAVOR_LABELS[fk];
+    return fl?`${m.name}(${fl.icon}${fl.name})`:`${m.name}(${T[m.typeKey].name})`;
+  };
+  const mfls=(arr)=>arr.map(m=>mfl(m)).join(', ');
+  // ── CS/DI 접근 방식 한 줄 ──
+  const styleNote=(m)=>{
+    if(!hasFL||m.cs===undefined)return'';
+    const c=(m.cs||0)<0?'변화를 추구하며':'안정을 지키며';
+    const d=(m.di||0)<0?'데이터로 판단':'직관으로 판단';
+    return`${c} ${d}하는 스타일`;
+  };
 
   // ── 영역 분류 ──
   const getZone=(m)=>{
@@ -446,92 +462,62 @@ function analyzeTeamComposition(members){
   const avgSE=members.reduce((s,m)=>s+m.se,0)/total;
   const avgPT=members.reduce((s,m)=>s+m.pt,0)/total;
 
-  // ── TIP 1: 팀 구성 오버뷰 (항상, 멤버 변경 시 무조건 변경됨) ──
-  const zoneParts=Object.entries(zoneMap)
-    .sort((a,b)=>b[1].length-a[1].length)
-    .map(([z,ms])=>`${z} ${ms.length}명(${nl(ms)})`);
+  // ── TIP 1: 팀 구성 오버뷰 — 플레이버명으로 소개 ──
+  const memberIntros=members.map(m=>mfl(m)).join(' · ');
   const zoneCount=Object.keys(zoneMap).length;
   const seSpread=Math.max(...members.map(m=>m.se))-Math.min(...members.map(m=>m.se));
   const ptSpread=Math.max(...members.map(m=>m.pt))-Math.min(...members.map(m=>m.pt));
-
   let shape;
   if(zoneCount>=4) shape='다양한 관점이 넓게 퍼진 팀';
   else if(zoneCount===1) shape='한 영역에 밀집된 팀';
   else if(seSpread>=14||ptSpread>=14) shape='양 극단에 퍼진 팀';
   else if(balM.length>=total*0.5) shape='중앙부에 모인 유연한 팀';
   else shape=`${zoneCount}개 영역에 분포된 팀`;
+  tips.push({icon:"🧭",text:`${total}명 ${shape}: ${memberIntros}`});
 
-  let gravityNote='';
-  if(Math.abs(avgSE)>=2||Math.abs(avgPT)>=2){
-    const dirs=[];
-    if(avgSE<=-2)dirs.push('전략');if(avgSE>=2)dirs.push('실행');
-    if(avgPT<=-2)dirs.push('관계');if(avgPT>=2)dirs.push('과업');
-    gravityNote=` 무게중심이 ${dirs.join('+')} 쪽으로 기울어져 있어요.`;
-  }
-  tips.push({icon:"🧭",text:`${total}명 ${shape} — ${zoneParts.join(' · ')}.${gravityNote}`});
-
-  // ── TIP 2: SE축 핵심 다이나믹 ──
+  // ── TIP 2: SE축 + CS/DI 통합 다이나믹 ──
   if(stratM.length>0||execM.length>0){
     if(stratM.length>0&&execM.length>0){
+      const sNote=stratM[0].cs!==undefined?` (${styleNote(stratM[0])})`:'';
+      const eNote=execM[0].cs!==undefined?` (${styleNote(execM[0])})`:'';
       if(stratM.length>execM.length){
-        tips.push({icon:"🎯",text:`전략형(${nl(stratM)})이 실행형(${nl(execM)})보다 많아요. 방향 논의가 길어지기 쉬우니, 회의 마지막 5분은 ${execM[0].name}에게 실행 항목 정리를 맡기세요.${balM.length>0?` ${nl(balM)}이 실행 쪽을 보조하면 보완돼요.`:''}`});
+        tips.push({icon:"🎯",text:`${mfls(stratM)}이 방향을 잡는 쪽이고, ${mfls(execM)}이 실행하는 쪽이에요. 전략 쪽이 많아서 방향 논의가 길어지기 쉬우니, 회의 마지막 5분은 ${execM[0].name}${eNote}에게 실행 정리를 맡기세요.${balM.length>0?` ${mfls(balM)}이 실행을 보조하면 보완돼요.`:''}`});
       }else if(execM.length>stratM.length){
-        tips.push({icon:"⚡",text:`실행형(${nl(execM)})이 전략형(${nl(stratM)})보다 많아요. '일단 하자'로 흐르기 쉬우니, ${stratM[0].name}이 회의 초반 방향 짚기를 맡으세요.${balM.length>0?` ${nl(balM)}이 방향 점검을 보조할 수 있어요.`:''}`});
+        tips.push({icon:"⚡",text:`${mfls(execM)}이 실행하는 쪽이고, ${mfls(stratM)}이 방향을 잡는 쪽이에요. 실행이 많아 '일단 하자'로 흐르기 쉬우니, ${stratM[0].name}${sNote}이 회의 초반 방향을 짚어주세요.${balM.length>0?` ${mfls(balM)}이 방향 점검을 보조할 수 있어요.`:''}`});
       }else{
-        tips.push({icon:"🔗",text:`전략형(${nl(stratM)})과 실행형(${nl(execM)})이 균형 잡혀 있어요. ${stratM[0].name}이 방향 → ${execM[0].name}이 실행으로 이어지는 릴레이 구조를 만들면 최고의 시너지가 나요.`});
+        tips.push({icon:"🔗",text:`${mfls(stratM)}이 방향을 잡고 ${mfls(execM)}이 실행으로 옮기는 릴레이가 가능한 구조예요.${sNote&&eNote?` ${stratM[0].name}은${sNote}, ${execM[0].name}은${eNote}이라 접근 방식은 다르지만 그게 오히려 보완이 돼요.`:''}`});
       }
     }else if(stratM.length>0){
-      tips.push({icon:"🎯",text:`${total}명 중 ${stratM.length}명(${nl(stratM)})이 전략 쪽이고, 실행형이 없어요. 방향은 잘 잡지만 실행 속도가 느려질 수 있어요.${balM.length>0?` ${nl(balM)}이 실행 쪽을 의식적으로 챙겨주세요.`:' 회의마다 실행 체크리스트를 반드시 만드세요.'}`});
+      tips.push({icon:"🎯",text:`${mfls(stratM)}이 전략 쪽에 모여있고, 실행형이 없어요. 방향은 잘 잡지만 실행이 느려질 수 있어요.${balM.length>0?` ${mfls(balM)}이 실행을 의식적으로 챙겨주세요.`:' 회의마다 실행 체크리스트를 반드시 만드세요.'}`});
     }else{
-      tips.push({icon:"⚡",text:`${total}명 중 ${execM.length}명(${nl(execM)})이 실행 쪽이고, 전략형이 없어요. 처리 속도는 빠르지만 '왜 하는지' 검증이 빠지기 쉬워요.${balM.length>0?` ${nl(balM)}이 방향 체크를 맡으면 좋아요.`:' 월 1회 방향 점검 시간을 잡으세요.'}`});
+      tips.push({icon:"⚡",text:`${mfls(execM)}이 실행 쪽에 모여있고, 전략형이 없어요. 속도는 빠르지만 '왜 하는지' 검증이 빠지기 쉬워요.${balM.length>0?` ${mfls(balM)}이 방향 체크를 맡으면 좋아요.`:' 월 1회 방향 점검 시간을 잡으세요.'}`});
     }
   }
 
-  // ── TIP 3: PT축 핵심 다이나믹 ──
+  // ── TIP 3: PT축 + CS/DI 통합 다이나믹 ──
   if(pplM.length>0||taskM.length>0){
     if(pplM.length>0&&taskM.length>0){
       if(pplM.length<taskM.length){
-        tips.push({icon:"💬",text:`관계형이 ${pplM.length}명(${nl(pplM)})뿐이에요.${pplM.length===1?` ${pplM[0].name}이 팀 분위기를 혼자 감당하지 않도록 의식적으로 관심을 나눠주세요.`:` 과업형(${nl(taskM)})이 많아서 효율은 좋지만 팀원 감정이 수면 아래로 가라앉기 쉬워요.`}`});
+        const pNote=pplM[0].cs!==undefined?` ${pplM[0].name}은 ${styleNote(pplM[0])}이라`:''
+        tips.push({icon:"💬",text:`관계형이 ${pplM.length}명(${mfls(pplM)})뿐이에요.${pplM.length===1?`${pNote} 팀 분위기를 혼자 감당하지 않도록, 다른 팀원들도 의식적으로 관심을 나눠주세요.`:` 과업형(${mfls(taskM)})이 많아서 효율은 좋지만 팀원 감정이 수면 아래로 가라앉기 쉬워요.`}`});
       }else if(pplM.length>taskM.length){
-        tips.push({icon:"📊",text:`관계형(${nl(pplM)})이 과업형(${nl(taskM)})보다 많아요. 구성원 케어는 잘 되지만, ${taskM[0].name}에게 주요 의사결정의 데이터 근거를 맡기면 균형이 잡혀요.`});
+        tips.push({icon:"📊",text:`${mfls(pplM)}이 관계 중심이고, 과업형은 ${mfls(taskM)}뿐이에요. 구성원 케어는 잘 되지만, ${taskM[0].name}에게 의사결정의 데이터 근거를 맡기면 균형이 잡혀요.`});
       }else{
-        tips.push({icon:"🤝",text:`관계형(${nl(pplM)})과 과업형(${nl(taskM)})이 균형 잡혀 있어요. 사람과 결과 모두 챙길 수 있는 팀이에요. 의견이 갈릴 때 '오늘의 결정 기준'을 먼저 합의해두면 효과적이에요.`});
+        tips.push({icon:"🤝",text:`관계형(${mfls(pplM)})과 과업형(${mfls(taskM)})이 균형 잡혀 있어요. 의견이 갈릴 때 '오늘의 결정 기준'을 먼저 합의해두면 효과적이에요.`});
       }
     }else if(pplM.length>0){
-      tips.push({icon:"💬",text:`관계형(${nl(pplM)})은 있지만 과업형이 없어요. 분위기는 좋지만 객관적 기준 설정이 약해질 수 있어요. 주요 의사결정에 반드시 숫자 근거를 넣으세요.`});
+      tips.push({icon:"💬",text:`${mfls(pplM)}이 관계 중심이지만 과업형이 없어요. 분위기는 좋지만 객관적 기준이 약해질 수 있어요. 주요 의사결정에 숫자 근거를 붙이세요.`});
     }else{
-      tips.push({icon:"📊",text:`과업형(${nl(taskM)})은 있지만 관계형이 없어요. 업무 효율은 높지만 팀원의 감정이 안 보일 수 있어요.${balM.length>0?` ${nl(balM)}이 분위기 체크를 의식적으로 해주면 보완돼요.`:' 월 1회 체크인을 넣으세요.'}`});
+      tips.push({icon:"📊",text:`${mfls(taskM)}이 과업 중심이지만 관계형이 없어요. 효율은 높지만 팀원 감정이 안 보일 수 있어요.${balM.length>0?` ${mfls(balM)}이 분위기 체크를 의식적으로 해주면 보완돼요.`:' 월 1회 체크인을 넣으세요.'}`});
     }
   }
 
-  // ── TIP 4: CS/DI 업무 스타일 분석 ──
-  const hasCS=members.some(m=>m.cs!==undefined&&m.cs!==null);
-  if(hasCS&&tips.length<5){
-    const changeM=members.filter(m=>(m.cs||0)<0);
-    const stableM=members.filter(m=>(m.cs||0)>0);
+  // ── TIP 4: 의사결정 스타일 차이 (데이터 vs 직관이 섞여있을 때만) ──
+  if(hasFL){
     const dataM=members.filter(m=>(m.di||0)<0);
     const intuM=members.filter(m=>(m.di||0)>0);
-
-    // CS axis: 변화 vs 안정
-    if(changeM.length>0&&stableM.length>0){
-      if(changeM.length>stableM.length){
-        tips.push({icon:"🔄",text:`변화 추구형(${nl(changeM)})이 안정 추구형(${nl(stableM)})보다 많아요. 새로운 시도에 열려있지만, ${stableM[0].name}이 '리스크 체크' 역할을 맡으면 균형이 잡혀요. 변화를 밀 때 '기존에 잘 되고 있는 건 뭔지'도 꼭 짚어주세요.`});
-      }else if(stableM.length>changeM.length){
-        tips.push({icon:"🛡️",text:`안정 추구형(${nl(stableM)})이 변화 추구형(${nl(changeM)})보다 많아요. 체계적이지만 변화에 느릴 수 있어요. ${changeM[0].name}이 새로운 시도를 제안할 때 '작게 실험해보자'로 접근하면 수용도가 올라가요.`});
-      }
-    }else if(changeM.length>0&&stableM.length===0){
-      tips.push({icon:"🔄",text:`팀 전체가 변화 추구 성향(${nl(changeM)})이에요. 새로운 시도엔 빠르지만, 기존 체계가 흔들릴 수 있어요. '바꾸기 전에 지킬 것 1가지' 규칙을 만들어보세요.`});
-    }else if(stableM.length>0&&changeM.length===0){
-      tips.push({icon:"🛡️",text:`팀 전체가 안정 추구 성향(${nl(stableM)})이에요. 안정적이지만 변화가 필요한 시점에 느릴 수 있어요. 분기 1회 '새로운 시도 1가지' 과제를 정해보세요.`});
-    }
-
-    // DI axis: 데이터 vs 직관
     if(dataM.length>0&&intuM.length>0&&tips.length<5){
-      tips.push({icon:"⚖️",text:`데이터형(${nl(dataM)})과 직관형(${nl(intuM)})이 섞여 있어요. 의사결정 시 '근거'의 의미가 달라서 부딪힐 수 있어요. ${dataM[0].name}이 숫자를 정리하고 ${intuM[0].name}이 현장 맥락을 붙이면 설득력이 두 배가 돼요.`});
-    }else if(dataM.length>0&&intuM.length===0&&tips.length<5){
-      tips.push({icon:"📈",text:`팀 전체가 데이터 중심(${nl(dataM)})이에요. 근거 기반 의사결정은 강하지만, 현장 감각이나 구성원 감정 같은 비정형 신호를 놓칠 수 있어요. 정기적으로 '데이터에 안 잡히는 이슈'를 점검하세요.`});
-    }else if(intuM.length>0&&dataM.length===0&&tips.length<5){
-      tips.push({icon:"💡",text:`팀 전체가 직관 중심(${nl(intuM)})이에요. 현장 감각은 뛰어나지만, 경영진 설득이나 효과 검증에서 약할 수 있어요. 주요 의사결정엔 '숫자 한 줄'이라도 근거를 붙이는 습관을 들이세요.`});
+      tips.push({icon:"⚖️",text:`의사결정 방식이 갈려요 — ${mfls(dataM)}은 숫자 근거를 먼저 보고, ${mfls(intuM)}은 현장 감각을 먼저 봐요. 제안할 때 '데이터 + 현장 사례' 세트로 준비하면 모두 납득해요.`});
     }
   }
 
@@ -545,13 +531,12 @@ function analyzeTeamComposition(members){
       if(d>maxDist){maxDist=d;outlier=m;}
     });
     if(outlier&&maxDist>6){
-      const ot=T[outlier.typeKey];
-      tips.push({icon:"🔍",text:`${outlier.name}(${ot.name})은 팀 평균에서 가장 먼 위치예요. 이 관점이 무시되면 팀의 맹점이 돼요. 의사결정 전 '${outlier.name}, 다른 시각 없어?' 한마디가 큰 차이를 만들어요.`});
+      tips.push({icon:"🔍",text:`${mfl(outlier)}은 팀 평균에서 가장 먼 위치예요. 이 관점이 무시되면 팀의 맹점이 돼요. 의사결정 전 '${outlier.name}, 다른 시각 없어?' 한마디가 큰 차이를 만들어요.`});
     }else{
       const dupes=Object.entries(zoneMap).filter(([z,ms])=>ms.length>=2).sort((a,b)=>b[1].length-a[1].length);
       if(dupes.length>0){
         const [zone,ms]=dupes[0];
-        tips.push({icon:"👥",text:`${nl(ms)}이 같은 ${zone} 영역에 모여 있어요. 서로 편하지만 같은 맹점을 공유할 수 있어요. 이 그룹 밖에 있는 ${nl(members.filter(m=>!ms.includes(m)))}의 의견을 의식적으로 물어보세요.`});
+        tips.push({icon:"👥",text:`${mfls(ms)}이 같은 ${zone} 영역에 모여 있어요. 서로 편하지만 같은 맹점을 공유할 수 있어요. ${nl(members.filter(m=>!ms.includes(m)))}의 의견을 의식적으로 물어보세요.`});
       }
     }
   }
