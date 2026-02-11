@@ -421,7 +421,7 @@ function getPersonPhases(member){
 function analyzeTeamComposition(members){
   const tips=[];
   const total=members.length;
-  const nl=(arr)=>arr.map(m=>m.name).join(', ');
+  const nl=(arr)=>arr.map(m=>m.name+'님').join(', ');
   // ── 이름 표기 ──
   const hasFL=members.some(m=>m.cs!==undefined&&m.cs!==null);
   const mIcon=(m)=>{
@@ -430,17 +430,17 @@ function analyzeTeamComposition(members){
     const fl=FLAVOR_LABELS[fk];
     return fl?fl.icon:T[m.typeKey].emoji;
   };
-  // 짧은 표기: 이름만 (팁 본문용)
-  const mn=(m)=>m.name;
-  const mns=(arr)=>arr.map(m=>m.name).join(', ');
-  // 소개용 풀 표기: 이름(아이콘 프로필명) — TIP1에서만 사용
+  // 짧은 표기: 이름님 (팁 본문용)
+  const mn=(m)=>m.name+'님';
+  const mns=(arr)=>arr.map(m=>m.name+'님').join(', ');
+  // 소개용 풀 표기: 이름님(아이콘 프로필명) — TIP1에서만 사용
   const mfl=(m)=>{
-    if(!hasFL||m.cs===undefined||m.cs===null)return`${m.name}(${T[m.typeKey].name})`;
+    if(!hasFL||m.cs===undefined||m.cs===null)return`${m.name}님(${T[m.typeKey].name})`;
     const fk=getFlavorKey(m.cs,m.di||0);
     const fo=T[m.typeKey].flavor?T[m.typeKey].flavor[fk]:null;
     const fname=fo&&typeof fo==='object'?fo.name:null;
     const fl=FLAVOR_LABELS[fk];
-    return fname?`${m.name}(${fl?fl.icon:''}${fname})`:`${m.name}(${T[m.typeKey].name})`;
+    return fname?`${m.name}님(${fl?fl.icon:''}${fname})`:`${m.name}님(${T[m.typeKey].name})`;
   };
   const mfls=(arr)=>arr.map(m=>mfl(m)).join(' · ');
   // ── CS/DI 접근 방식 한 줄 ──
@@ -493,11 +493,11 @@ function analyzeTeamComposition(members){
       const sNote=stratM[0].cs!==undefined?` (${styleNote(stratM[0])})`:'';
       const eNote=execM[0].cs!==undefined?` (${styleNote(execM[0])})`:'';
       if(stratM.length>execM.length){
-        tips.push({icon:"🎯",text:`${mns(stratM)}이 방향을 잡고, ${mns(execM)}이 실행해요. 전략 쪽이 많아서 방향 논의가 길어지기 쉬우니, 회의 마지막 5분은 ${execM[0].name}에게 실행 정리를 맡기세요.${balM.length>0?` ${mns(balM)}이 실행을 보조하면 보완돼요.`:''}`});
+        tips.push({icon:"🎯",text:`${mns(stratM)}이 방향을 잡고, ${mns(execM)}이 실행해요. 전략 쪽이 많아서 방향 논의가 길어지기 쉬우니, 회의 마지막 5분은 ${execM[0].name}님에게 실행 정리를 맡기세요.${balM.length>0?` ${mns(balM)}이 실행을 보조하면 보완돼요.`:''}`});
       }else if(execM.length>stratM.length){
-        tips.push({icon:"⚡",text:`${mns(execM)}이 실행하고, ${mns(stratM)}이 방향을 잡아요. 실행이 많아 '일단 하자'로 흐르기 쉬우니, ${stratM[0].name}이 회의 초반 방향을 짚어주세요.${balM.length>0?` ${mns(balM)}이 방향 점검을 보조할 수 있어요.`:''}`});
+        tips.push({icon:"⚡",text:`${mns(execM)}이 실행하고, ${mns(stratM)}이 방향을 잡아요. 실행이 많아 '일단 하자'로 흐르기 쉬우니, ${stratM[0].name}님이 회의 초반 방향을 짚어주세요.${balM.length>0?` ${mns(balM)}이 방향 점검을 보조할 수 있어요.`:''}`});
       }else{
-        tips.push({icon:"🔗",text:`${mns(stratM)}이 방향을 잡고 ${mns(execM)}이 실행으로 옮기는 릴레이가 가능해요.${sNote&&eNote?` ${stratM[0].name}은${sNote}, ${execM[0].name}은${eNote}이라 접근은 다르지만 보완이 돼요.`:''}`});
+        tips.push({icon:"🔗",text:`${mns(stratM)}이 방향을 잡고 ${mns(execM)}이 실행으로 옮기는 릴레이가 가능해요.${sNote&&eNote?` ${stratM[0].name}님은${sNote}, ${execM[0].name}님은${eNote}이라 접근은 다르지만 보완이 돼요.`:''}`});
       }
     }else if(stratM.length>0){
       tips.push({icon:"🎯",text:`${mns(stratM)}이 전략 쪽에 모여있고 실행형이 없어요. 방향은 잘 잡지만 실행이 느려질 수 있어요.${balM.length>0?` ${mns(balM)}이 실행을 의식적으로 챙겨주세요.`:' 회의마다 실행 체크리스트를 반드시 만드세요.'}`});
@@ -510,9 +510,9 @@ function analyzeTeamComposition(members){
   if(pplM.length>0||taskM.length>0){
     if(pplM.length>0&&taskM.length>0){
       if(pplM.length<taskM.length){
-        tips.push({icon:"💬",text:`관계형이 ${pplM.length}명(${mns(pplM)})뿐이에요. 과업형(${mns(taskM)})이 많아서 효율은 좋지만 팀원 감정이 수면 아래로 가라앉기 쉬워요.${pplM.length===1?` ${pplM[0].name}이 혼자 감당하지 않도록 다른 팀원들도 의식적으로 관심을 나눠주세요.`:''}`});
+        tips.push({icon:"💬",text:`관계형이 ${pplM.length}명(${mns(pplM)})뿐이에요. 과업형(${mns(taskM)})이 많아서 효율은 좋지만 팀원 감정이 수면 아래로 가라앉기 쉬워요.${pplM.length===1?` ${pplM[0].name}님이 혼자 감당하지 않도록 다른 팀원들도 의식적으로 관심을 나눠주세요.`:''}`});
       }else if(pplM.length>taskM.length){
-        tips.push({icon:"📊",text:`${mns(pplM)}이 관계 중심이고 과업형은 ${mns(taskM)}뿐이에요. 구성원 케어는 잘 되지만, ${taskM[0].name}에게 의사결정의 데이터 근거를 맡기면 균형이 잡혀요.`});
+        tips.push({icon:"📊",text:`${mns(pplM)}이 관계 중심이고 과업형은 ${mns(taskM)}뿐이에요. 구성원 케어는 잘 되지만, ${taskM[0].name}님에게 의사결정의 데이터 근거를 맡기면 균형이 잡혀요.`});
       }else{
         tips.push({icon:"🤝",text:`관계형(${mns(pplM)})과 과업형(${mns(taskM)})이 균형 잡혀 있어요. 의견이 갈릴 때 '오늘의 결정 기준'을 먼저 합의해두면 효과적이에요.`});
       }
@@ -542,7 +542,7 @@ function analyzeTeamComposition(members){
       if(d>maxDist){maxDist=d;outlier=m;}
     });
     if(outlier&&maxDist>6){
-      tips.push({icon:"🔍",text:`${outlier.name}은 팀 평균에서 가장 먼 위치예요. 이 관점이 무시되면 팀의 맹점이 돼요. 의사결정 전 '${outlier.name}, 다른 시각 없어?' 한마디가 큰 차이를 만들어요.`});
+      tips.push({icon:"🔍",text:`${outlier.name}님은 팀 평균에서 가장 먼 위치예요. 이 관점이 무시되면 팀의 맹점이 돼요. 의사결정 전 '${outlier.name}님, 다른 시각 없어?' 한마디가 큰 차이를 만들어요.`});
     }else{
       const dupes=Object.entries(zoneMap).filter(([z,ms])=>ms.length>=2).sort((a,b)=>b[1].length-a[1].length);
       if(dupes.length>0){
@@ -568,33 +568,34 @@ function generateConflictDetail(a,b){
   const e=seDiff<=0?{m:b,t:tB}:{m:a,t:tA};
   const p=ptDiff<=0?{m:a,t:tA}:{m:b,t:tB};
   const k=ptDiff<=0?{m:b,t:tB}:{m:a,t:tA};
+  const n=(m)=>m.name+'님';
   let reason,tip;
   if(seGap>=8&&ptGap>=8){
-    reason=`${s.m.name}(${s.t.name})은 '왜 하는지'와 '사람 반응'을 먼저 보는데, ${e.m.name}(${e.t.name})은 '빨리 끝내기'와 '결과물'을 먼저 봐요. ${s.m.name} 입장에선 '왜 그렇게 급해?', ${e.m.name} 입장에선 '왜 자꾸 논의만 해?'가 되기 쉬워요.`;
-    tip=`${s.m.name}이 방향을 잡으면 ${e.m.name}이 바로 실행 계획으로 옮기는 '릴레이' 구조를 만드세요. 방향이 80%만 잡혀도 실행을 시작해도 된다고 합의하면 돼요.`;
+    reason=`${n(s.m)}(${s.t.name})은 '왜 하는지'와 '사람 반응'을 먼저 보는데, ${n(e.m)}(${e.t.name})은 '빨리 끝내기'와 '결과물'을 먼저 봐요. ${n(s.m)} 입장에선 '왜 그렇게 급해?', ${n(e.m)} 입장에선 '왜 자꾸 논의만 해?'가 되기 쉬워요.`;
+    tip=`${n(s.m)}이 방향을 잡으면 ${n(e.m)}이 바로 실행 계획으로 옮기는 '릴레이' 구조를 만드세요. 방향이 80%만 잡혀도 실행을 시작해도 된다고 합의하면 돼요.`;
   }else if(seGap>ptGap){
-    reason=`${s.m.name}(${s.t.name})은 '이걸 왜 하는지' 방향부터 잡고 싶은데, ${e.m.name}(${e.t.name})은 '일단 시작하자'가 먼저예요. ${s.m.name} 입장에선 '방향도 없이 뛰어?', ${e.m.name} 입장에선 '또 회의만 하고 끝나는 거 아냐?'가 될 수 있어요.`;
-    tip=`회의 초반 15분은 ${s.m.name}의 방향 논의, 후반은 ${e.m.name}의 실행 정리로 나누세요. ${s.m.name}에게 '방향 잡아줘서 고마워', ${e.m.name}에게 '실행 정리 덕분에 움직일 수 있어'라고 인정해주면 시너지가 나요.`;
+    reason=`${n(s.m)}(${s.t.name})은 '이걸 왜 하는지' 방향부터 잡고 싶은데, ${n(e.m)}(${e.t.name})은 '일단 시작하자'가 먼저예요. ${n(s.m)} 입장에선 '방향도 없이 뛰어?', ${n(e.m)} 입장에선 '또 회의만 하고 끝나는 거 아냐?'가 될 수 있어요.`;
+    tip=`회의 초반 15분은 ${n(s.m)}의 방향 논의, 후반은 ${n(e.m)}의 실행 정리로 나누세요. ${n(s.m)}에게 '방향 잡아줘서 고마워', ${n(e.m)}에게 '실행 정리 덕분에 움직일 수 있어'라고 인정해주면 시너지가 나요.`;
   }else{
-    reason=`${p.m.name}(${p.t.name})은 '사람들이 어떻게 느낄지'가 먼저 신경 쓰이는데, ${k.m.name}(${k.t.name})은 '기준에 맞는지, 결과가 나오는지'를 먼저 봐요. ${p.m.name} 입장에선 '사람 마음은 안 보여?', ${k.m.name} 입장에선 '감정에 끌려다니면 일이 안 돼'가 될 수 있어요.`;
-    tip=`${p.m.name}이 구성원 반응을 체크하고 ${k.m.name}이 기준과 품질을 챙기는 역할을 나누세요. ${p.m.name}의 피드백은 '반대'가 아니라 '실행 경로 보완'이라는 걸 ${k.m.name}이 이해하면 최고의 조합이 돼요.`;
+    reason=`${n(p.m)}(${p.t.name})은 '사람들이 어떻게 느낄지'가 먼저 신경 쓰이는데, ${n(k.m)}(${k.t.name})은 '기준에 맞는지, 결과가 나오는지'를 먼저 봐요. ${n(p.m)} 입장에선 '사람 마음은 안 보여?', ${n(k.m)} 입장에선 '감정에 끌려다니면 일이 안 돼'가 될 수 있어요.`;
+    tip=`${n(p.m)}이 구성원 반응을 체크하고 ${n(k.m)}이 기준과 품질을 챙기는 역할을 나누세요. ${n(p.m)}의 피드백은 '반대'가 아니라 '실행 경로 보완'이라는 걸 ${n(k.m)}이 이해하면 최고의 조합이 돼요.`;
   }
   // CS/DI 업무 스타일 차이 추가 코멘트
   const hasStyle=a.cs!==undefined&&b.cs!==undefined;
   if(hasStyle){
     const csGap=Math.abs((a.cs||0)-(b.cs||0));
     const diGap=Math.abs((a.di||0)-(b.di||0));
-    const cA=(a.cs||0)<0?a:b, cB=(a.cs||0)<0?b:a; // cA=변화형, cB=안정형
-    const dA=(a.di||0)<0?a:b, dB=(a.di||0)<0?b:a; // dA=데이터형, dB=직관형
+    const cA=(a.cs||0)<0?a:b, cB=(a.cs||0)<0?b:a;
+    const dA=(a.di||0)<0?a:b, dB=(a.di||0)<0?b:a;
     if(csGap>=4&&diGap>=4){
-      reason+=` 게다가 업무 스타일도 달라요 — ${cA.name}은 변화+${(cA===dA)?'데이터':'직관'}형이고 ${cB.name}은 안정+${(cB===dA)?'데이터':'직관'}형이라, 접근 방식 자체가 다를 수 있어요.`;
-      tip+=` 업무 스타일 차이도 인식하세요: 새로운 시도를 할 때 ${cA.name}의 추진력과 ${cB.name}의 안정성을 조합하세요.`;
+      reason+=` 게다가 업무 스타일도 달라요 — ${n(cA)}은 변화+${(cA===dA)?'데이터':'직관'}형이고 ${n(cB)}은 안정+${(cB===dA)?'데이터':'직관'}형이라, 접근 방식 자체가 다를 수 있어요.`;
+      tip+=` 업무 스타일 차이도 인식하세요: 새로운 시도를 할 때 ${n(cA)}의 추진력과 ${n(cB)}의 안정성을 조합하세요.`;
     }else if(csGap>=4){
-      reason+=` 업무 스타일도 차이가 있어요 — ${cA.name}은 변화를 추구하고 ${cB.name}은 안정을 추구해서, 새로운 시도에 대한 온도 차이가 있을 수 있어요.`;
-      tip+=` 변화가 필요한 안건은 ${cA.name}이, 안정적 운영이 필요한 안건은 ${cB.name}이 리드하면 자연스러워요.`;
+      reason+=` 업무 스타일도 차이가 있어요 — ${n(cA)}은 변화를 추구하고 ${n(cB)}은 안정을 추구해서, 새로운 시도에 대한 온도 차이가 있을 수 있어요.`;
+      tip+=` 변화가 필요한 안건은 ${n(cA)}이, 안정적 운영이 필요한 안건은 ${n(cB)}이 리드하면 자연스러워요.`;
     }else if(diGap>=4){
-      reason+=` 의사결정 방식도 달라요 — ${dA.name}은 데이터를 먼저 보고, ${dB.name}은 직관과 현장 경험을 먼저 봐요.`;
-      tip+=` 제안할 때 ${dA.name}에겐 숫자 근거를, ${dB.name}에겐 현장 사례를 함께 준비하면 둘 다 납득해요.`;
+      reason+=` 의사결정 방식도 달라요 — ${n(dA)}은 데이터를 먼저 보고, ${n(dB)}은 직관과 현장 경험을 먼저 봐요.`;
+      tip+=` 제안할 때 ${n(dA)}에겐 숫자 근거를, ${n(dB)}에겐 현장 사례를 함께 준비하면 둘 다 납득해요.`;
     }
   }
   return{reason,tip};
