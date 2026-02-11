@@ -505,8 +505,10 @@ async function sbGetTeam(teamId){
   return data;
 }
 async function sbSaveResult(teamId,name,se,pt,typeKey,strengthAnswers){
+  // strength_answers: convert to array format for Supabase text[] column compatibility
+  const saArr=Array.isArray(strengthAnswers)?strengthAnswers:['CS:'+(strengthAnswers.CS||0),'DI:'+(strengthAnswers.DI||0)];
   const{data,error}=await sb.from('results').upsert({
-    team_id:teamId,name,se_score:se,pt_score:pt,type_key:typeKey,strength_answers:strengthAnswers
+    team_id:teamId,name,se_score:se,pt_score:pt,type_key:typeKey,strength_answers:saArr
   },{onConflict:'team_id,name'}).select().single();
   if(error)throw new Error(error.message);
   return data;
