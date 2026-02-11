@@ -1082,7 +1082,13 @@ function renderTeamLoading(){
 async function loadTeamFromSupabase(){
   try{
     const results=await sbLoadResults(state.teamId);
-    state.members=results.map(r=>({name:r.name,se:r.se_score,pt:r.pt_score,typeKey:r.type_key}));
+    state.members=results.map(r=>{
+      let cs=0,di=0;
+      if(Array.isArray(r.strength_answers)){
+        r.strength_answers.forEach(s=>{const[k,v]=s.split(':');if(k==='CS')cs=parseInt(v)||0;if(k==='DI')di=parseInt(v)||0;});
+      }
+      return{name:r.name,se:r.se_score,pt:r.pt_score,typeKey:r.type_key,cs,di};
+    });
     // Auto-save my result if I have scores but I'm not in the team results
     if(state.userName&&state.scores&&state.scores.SE!==undefined){
       const myName=state.userName;
@@ -1092,7 +1098,7 @@ async function loadTeamFromSupabase(){
         const ssData={CS:state.strengthScores?.CS||0,DI:state.strengthScores?.DI||0};
         try{
           await sbSaveResult(state.teamId,myName,state.scores.SE,state.scores.PT,tk,ssData);
-          state.members.push({name:myName,se:state.scores.SE,pt:state.scores.PT,typeKey:tk});
+          state.members.push({name:myName,se:state.scores.SE,pt:state.scores.PT,typeKey:tk,cs:ssData.CS,di:ssData.DI});
           saveTeamMembership(state.teamId,myName);
         }catch(e2){/* silent */}
       }
@@ -1284,7 +1290,7 @@ function renderTeam(){
             <span style="font-size:20px">${t.emoji}</span>
             <div style="flex:1">
               <div style="font-size:14px;font-weight:700;color:#1A1A2E">${m.name} ${isMe?`<span style="font-size:11px;color:${t.color};font-weight:600">(나)</span>`:""}</div>
-              <div style="font-size:12px;color:#9CA3AF">${t.name}</div>
+              <div style="font-size:12px;color:#9CA3AF">${t.name}${(m.cs!==undefined&&m.cs!==null)?` · ${FLAVOR_LABELS[getFlavorKey(m.cs,m.di||0)]?.icon||''} ${FLAVOR_LABELS[getFlavorKey(m.cs,m.di||0)]?.name||''}`:''}</div>
             </div>
             ${state.mode!=="team"&&i>0?`<button onclick="event.stopPropagation();removeMember(${i})" style="background:none;border:none;cursor:pointer;font-size:16px;color:#D1D5DB;padding:4px">✕</button>`:""}
             <span style="font-size:12px;color:#9CA3AF;transition:transform .15s;${isOpen?'transform:rotate(90deg)':''}">${isOpen?'▾':'▸'}</span>
@@ -1292,6 +1298,29 @@ function renderTeam(){
           ${isOpen?`
           <div style="padding:16px;border-top:1px solid ${t.colorLight}">
             <p style="font-size:15px;font-weight:700;color:${t.color};margin-bottom:4px">${t.subtitle}</p>
+            ${(m.cs!==undefined&&m.cs!==null&&t.flavor)?(()=>{
+              const fk=getFlavorKey(m.cs,m.di||0);
+              const fl=FLAVOR_LABELS[fk];
+              const flText=t.flavor[fk]||'';
+              return fl?`
+            <div style="padding:12px;background:linear-gradient(135deg,${t.colorBg},#fff);border-radius:12px;border:1px solid ${t.colorLight};margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                <span style="font-size:16px">${fl.icon}</span>
+                <span style="font-size:13px;font-weight:700;color:${t.color}">${fl.name}</span>
+                <span style="font-size:11px;color:#9CA3AF">${fk}</span>
+              </div>
+              ${flText?`<p style="font-size:12px;color:#374151;line-height:1.6">${flText}</p>`:''}
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <div style="flex:1">
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:#9CA3AF;margin-bottom:2px"><span>변화</span><span>안정</span></div>
+                  <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden"><div style="height:100%;width:${50+Math.round(m.cs/6*50)}%;background:linear-gradient(90deg,#8B5CF6,#6C5CE7);border-radius:3px"></div></div>
+                </div>
+                <div style="flex:1">
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:#9CA3AF;margin-bottom:2px"><span>데이터</span><span>직관</span></div>
+                  <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden"><div style="height:100%;width:${50+Math.round((m.di||0)/6*50)}%;background:linear-gradient(90deg,#0984E3,#00B894);border-radius:3px"></div></div>
+                </div>
+              </div>
+            </div>`:''})():''}
             <div style="padding:12px;background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A;margin-bottom:12px">
               <span style="font-size:12px;font-weight:700;color:#92400E">🔥 핵심 욕구</span>
               <p style="font-size:13px;color:#374151;line-height:1.6;margin-top:4px">${t.coreNeed}</p>
