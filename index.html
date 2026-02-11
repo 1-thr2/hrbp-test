@@ -117,10 +117,10 @@ const T = {
     desc:"회의 중에 갑자기 '잠깐, 근본적으로 이게 왜 필요하죠?'라고 끊는 사람. 다들 실행 이야기를 하고 있는데 혼자 방향성을 되짚고 있다면, 이 유형이에요.\n\n조직 개편안을 받으면 구조도부터 보는 게 아니라, '이 변화로 구성원들이 뭘 느끼게 될까?'를 먼저 생각해요. 전략적으로 사고하면서도 항상 사람을 중심에 두는 — Why와 Who를 동시에 붙잡으려는 사람이에요.",
     painPoint:"맥락 없이 떨어지는 지시. '그냥 해'라는 말을 들으면 속에서 뭔가 올라와요. 그리고 공들여 만든 방향성이 실행도 안 해보고 뒤집힐 때 — 그때 진짜 힘들어요.",
     flavor:{
-      "C-D-":"새로운 변화를 데이터로 설계하는 '혁신 설계자'. 조직 변화를 주도하면서도 근거 기반으로 접근해요.",
-      "C-D+":"직관과 비전으로 변화를 이끄는 '비전 아키텍트'. 새로운 가능성을 빠르게 포착하고, 스토리로 변화를 만들어요.",
-      "C+D-":"안정적 기반 위에서 전략을 다듬는 '신중한 설계자'. 검증된 데이터를 바탕으로 점진적 개선을 설계해요.",
-      "C+D+":"경험과 관계를 바탕으로 조직을 돌보는 '조직 수호자'. 오랜 경험에서 나오는 직관으로 사람과 방향을 동시에 챙겨요."
+      "C-D-":{name:"혁신 설계자",desc:"큰 그림을 그리며 사람을 챙기는 전략가인데, 새로운 변화를 데이터로 밀어요. '왜 바꿔야 하는지'를 수치로 증명하면서도 구성원 마음을 놓치지 않아요. 경영진에겐 근거로, 구성원에겐 공감으로 — 변화의 양쪽 문을 동시에 여는 사람.",strength:"데이터 기반 변화 설계 — 근거 있는 비전으로 저항을 줄이면서 사람도 챙겨요",caution:"모든 걸 증명하려다 속도가 느려질 수 있어요. 80% 근거면 일단 움직이세요"},
+      "C-D+":{name:"비전 아키텍트",desc:"큰 그림과 사람을 동시에 보는 전략가인데, 직관으로 미래를 읽고 변화를 이끌어요. 남들이 아직 못 보는 가능성을 포착하고, 스토리로 사람을 움직여요. '이렇게 하면 어떨까?'라는 영감이 먼저 오고, 그 방향에 사람들이 따라오게 만드는 사람.",strength:"비전 + 스토리텔링 — 사람들이 '가고 싶다'고 느끼는 방향을 만들어요",caution:"직관만 앞서면 '근거가 부족하다'는 피드백을 받기 쉬워요. 중요한 제안엔 숫자를 곁들이세요"},
+      "C+D-":{name:"신중한 설계자",desc:"큰 그림을 보며 사람을 챙기는 전략가인데, 안정적 기반 위에서 데이터로 다듬어요. 급격한 변화보다 점진적 개선을 선호하고, 모든 제안에 철저한 근거를 갖춰요. 조직이 흔들릴 때 '우리 방향은 맞아, 데이터가 말해주고 있어'라고 안심시키는 사람.",strength:"리스크 관리 + 데이터 기반 의사결정 — 안정적이면서도 방향감이 있어요",caution:"너무 신중해서 타이밍을 놓칠 수 있어요. 변화가 필요한 순간엔 과감해지세요"},
+      "C+D+":{name:"조직 수호자",desc:"큰 그림과 사람을 동시에 보면서, 오래 쌓인 경험과 직관으로 조직을 돌봐요. '이건 안 될 거야', '저 사람 지금 힘들어'를 정확히 읽어요. 조직의 온도를 지키면서 큰 방향도 놓치지 않는 — 팀에서 가장 든든한 존재.",strength:"경험 기반 통찰 + 조직 안정화 — 흔들리지 않는 판단력으로 팀을 지켜요",caution:"'예전에 안 됐는데'를 너무 자주 꺼내면 변화를 막는 사람이 될 수 있어요"}
     },
     keywords:["방향성 설정","변화 관리","이해관계자 설득","조직 설계","비전 수립"],
     energyUp:["채용 브랜딩 전략 기획","조직문화 진단 및 개선 설계","리더 코칭·이해관계자 설득","인재 육성 로드맵 수립","조직 개편·변화 관리 설계"],
@@ -142,10 +142,10 @@ const T = {
     desc:"'이거 왜 하는 거예요?'로 시작해서 '그럼 기준은 뭐예요?'로 끝나는 사람. 큰 그림을 보는 능력과 과업을 정교하게 다듬는 능력을 동시에 가지고 있어요.\n\n전략을 세울 때 사람의 감정보다는 논리와 구조가 먼저 떠오르고, 그래서 제도나 프로세스를 설계할 때 빛나는 타입이에요. '왜(Why)'와 '어떻게(How)'를 연결하는 다리를 놓는 사람.",
     painPoint:"근거 없이 방향이 바뀌는 것. '어제는 A라더니 오늘은 B?'가 반복되면 의욕이 뚝 떨어져요. 그리고 공들여 만든 체계를 아무도 안 쓸 때 — 그 허무함은 좀 큽니다.",
     flavor:{
-      "C-D-":"변화를 데이터로 설계하는 '혁신 엔지니어'. 새로운 제도를 도입할 때 수치 근거를 철저히 갖추면서도 과감하게 밀고 나가요.",
-      "C-D+":"직관으로 구조를 잡는 '창의적 설계자'. 트렌드에 민감하고, 남들이 안 보는 구조적 가능성을 직감적으로 포착해요.",
-      "C+D-":"검증된 데이터로 체계를 지키는 '품질 관리자'. 기존 시스템을 정교하게 다듬고, 데이터로 효과를 증명하는 데 뛰어나요.",
-      "C+D+":"경험 기반으로 안정적 체계를 운영하는 '실전 관리자'. 오래 쌓아온 노하우로 흔들리지 않는 기준을 만들어요."
+      "C-D-":{name:"혁신 엔지니어",desc:"전략적 사고로 과업의 구조를 설계하는데, 새로운 방식을 데이터로 밀어요. 기존 제도의 문제를 수치로 파악하고, 더 나은 구조를 과감하게 도입해요. '이 프로세스가 왜 비효율적인지' 숫자로 보여주고 대안까지 설계하는 사람.",strength:"데이터 기반 제도 혁신 — 논리적 근거로 새로운 체계를 만들고 밀어붙여요",caution:"과감함이 앞서면 현장 저항에 부딪혀요. 변화 속도를 조절하세요"},
+      "C-D+":{name:"창의적 설계자",desc:"전략적으로 과업 구조를 잡는데, 직관으로 트렌드를 포착하고 새로운 가능성을 열어요. 남들이 '그게 되겠어?'라고 할 때 구조적 가능성을 직감적으로 찾아내요. 틀을 만드는 능력에 창의성이 더해진 사람.",strength:"트렌드 포착 + 구조화 — 새로운 아이디어를 실현 가능한 체계로 바꿔요",caution:"직관적 판단이 틀릴 때를 대비해 핵심 가정은 검증하세요"},
+      "C+D-":{name:"품질 관리자",desc:"전략적으로 과업을 설계하면서, 검증된 데이터로 기존 체계를 정교하게 다듬어요. 새로운 걸 도입하기보다 있는 걸 더 잘 돌아가게 만드는 데 집중해요. 수치로 효과를 증명하고, 꼼꼼하게 품질을 관리하는 사람.",strength:"데이터 기반 품질 관리 — 기존 시스템을 빈틈없이 다듬어요",caution:"개선에만 집중하다 큰 변화의 필요성을 놓칠 수 있어요"},
+      "C+D+":{name:"실전 관리자",desc:"전략적 과업 설계 능력에 오래 쌓인 실무 경험이 더해진 사람이에요. 경험에서 나오는 감각으로 '이건 현장에서 안 돌아가'를 바로 알아채고, 현실적인 기준을 세워요. 흔들리지 않는 노하우로 체계를 운영하는 사람.",strength:"경험 기반 체계 운영 — 현실적이고 안정적인 기준을 만들어요",caution:"경험에만 의존하면 새로운 방법을 놓쳐요. 가끔은 '해본 적 없는 것'도 시도해보세요"}
     },
     keywords:["프로세스 설계","데이터 분석","제도 구축","표준화","논리적 판단"],
     energyUp:["평가·보상 체계 설계","HR 대시보드·데이터 분석","채용 프로세스 구조화·자동화","인사 제도 기획 및 개선","업무 매뉴얼·가이드 문서화"],
@@ -167,10 +167,10 @@ const T = {
     desc:"팀에 문제가 생겼을 때 가장 먼저 '그 사람 요즘 괜찮아?'라고 묻고, 바로 찾아가는 사람. 회의실 분위기가 싸해지면 자연스럽게 말을 꺼내서 공기를 바꿔놓고, 본인은 그걸 의식하지도 못해요.\n\n점심시간에 혼자 밥 먹는 신입사원이 눈에 들어오고, 팀장님 표정이 어두운 게 신경 쓰이고, 슬랙 답장이 평소보다 짧으면 '무슨 일 있나?' 싶어지는 — 조직의 온도를 실시간으로 감지하면서 직접 현장에서 해결하는 사람이에요.",
     painPoint:"사람을 숫자로만 다루는 순간. '이번 달 퇴사율 3%니까 괜찮아'라는 말에 '그 3%가 누군데요?'라고 되묻고 싶어져요. 그리고 자기가 다 안고 있는데 아무도 몰라줄 때 — 웃으면서 속으로 지쳐요.",
     flavor:{
-      "C-D-":"데이터를 들고 사람을 만나는 '분석적 케어러'. 구성원 서베이 결과를 분석한 뒤 직접 찾아가 이야기를 나눠요.",
-      "C-D+":"변화의 물결 속에서 사람을 챙기는 '체인지 서포터'. 새로운 시도를 좋아하면서도 그 변화 속 사람의 감정을 놓치지 않아요.",
-      "C+D-":"데이터로 사람을 지키는 '조직 안전망'. 이직률, 만족도 수치를 꼼꼼히 챙기면서 안정적으로 구성원을 돌봐요.",
-      "C+D+":"경험과 감으로 현장을 돌보는 '따뜻한 해결사'. 오래 쌓은 경험과 직관으로 사람의 상태를 정확히 읽어요."
+      "C-D-":{name:"분석적 케어러",desc:"현장에서 사람을 직접 만나고 챙기는데, 데이터를 들고 가요. 서베이 결과를 분석한 뒤 '이 수치 뒤에 어떤 사람이 있는지' 직접 찾아가서 확인해요. 새로운 케어 방법도 적극적으로 시도하면서, 그 효과를 숫자로 검증하는 사람.",strength:"데이터 + 현장감 — 숫자로 문제를 찾고 사람으로 해결해요",caution:"분석에 시간을 쓰다 사람에게 다가가는 타이밍을 놓칠 수 있어요"},
+      "C-D+":{name:"체인지 서포터",desc:"사람을 직접 챙기면서도 변화를 두려워하지 않아요. 새로운 시도 속에서 사람들이 어떤 감정을 느끼는지 놓치지 않고, 변화가 사람에게 긍정적으로 작용하도록 중간 다리를 놓아요. 직관적으로 분위기를 읽고 바로 행동하는 사람.",strength:"변화 속 사람 케어 — 새 시도를 하면서도 사람의 불안을 잡아줘요",caution:"변화에 열정적인 나머지 현장의 피로감을 간과할 수 있어요"},
+      "C+D-":{name:"조직 안전망",desc:"현장에서 사람을 직접 만나고 챙기면서, 이직률·만족도 같은 수치를 꼼꼼히 관리해요. 데이터로 위험 신호를 미리 잡고, 안정적으로 구성원을 돌보는 사람. 급격한 변화보다 '지금 있는 사람을 잘 지키는 것'에 집중해요.",strength:"데이터 기반 안정적 케어 — 수치로 위험을 감지하고 사람으로 해결해요",caution:"안정에 집중하다 필요한 변화의 시점을 놓칠 수 있어요"},
+      "C+D+":{name:"따뜻한 해결사",desc:"오랜 경험에서 나오는 직관으로 사람의 상태를 정확히 읽고, 현장에서 직접 해결해요. 데이터 없이도 '이 사람 지금 힘들다'를 표정만 보고 알아채요. 안정적인 환경을 만들면서 사람을 돌보는 — 팀의 심리적 안전망.",strength:"경험 + 직관으로 사람 케어 — 말하기 전에 알아채고 다가가요",caution:"직감에만 의존하면 구조적 문제를 놓칠 수 있어요. 가끔은 데이터를 확인하세요"}
     },
     keywords:["관계 구축","갈등 중재","현장 소통","공감 능력","온보딩"],
     energyUp:["구성원 상담·고충 처리","현업 리더 파트너십 구축","신규 입사자 온보딩 설계·지원","팀빌딩·워크숍 기획 및 퍼실리테이션","조직 내 갈등 중재·소통 촉진"],
@@ -192,10 +192,10 @@ const T = {
     desc:"월요일 아침에 이번 주 할 일 리스트를 이미 다 정리해놓고, 다른 사람이 '이번 주 뭐하지...'라고 하면 속으로 답답한 사람. '그래서 언제까지 하면 돼요?'가 입버릇이에요.\n\n채용 공고 3개를 동시에 돌리면서, 면접 일정 조율하고, 처우 협의 메일 보내고, 중간에 급한 인사 데이터 요청까지 처리해요. 과업 하나하나를 빠짐없이 완수하는 관리력 — 본인은 당연하다고 생각하지만, 팀에선 이 사람 없으면 진짜 안 돌아가요.",
     painPoint:"끝이 안 보이는 논의. '이건 좀 더 생각해보자'가 세 번째 반복되면 속에서 불이 나요. 그리고 열심히 실행했는데 '방향이 바뀌었어'라는 말 — 그게 제일 힘들어요.",
     flavor:{
-      "C-D-":"데이터로 새로운 방법을 찾아 실행하는 '혁신 실행가'. 효율을 높이는 새로운 툴이나 프로세스를 빠르게 도입해요.",
-      "C-D+":"감과 추진력으로 빠르게 결과를 내는 '돌파형 실행가'. 직관적으로 최적의 방법을 찾아 바로 실행에 옮겨요.",
-      "C+D-":"정확한 데이터로 안정적 성과를 내는 '정밀 운영가'. 수치를 꼼꼼히 챙기며 실수 없이 과업을 완수해요.",
-      "C+D+":"경험에서 나오는 감각으로 묵묵히 해내는 '베테랑 실행가'. 오랜 경험으로 어떤 상황에서도 흔들리지 않아요."
+      "C-D-":{name:"혁신 실행가",desc:"맡은 과업을 빠르고 정확하게 해내는데, 새로운 방법을 데이터로 찾아요. 기존 방식에 안 머물고, 효율을 높이는 툴이나 프로세스를 적극적으로 도입해요. 실행력에 혁신이 더해져서 '더 나은 방법으로 더 빠르게' 해내는 사람.",strength:"혁신적 실행 — 새로운 방법을 찾아 효율을 극대화해요",caution:"새 툴 도입에 빠져서 정작 실행이 늦어질 수 있어요. 실행이 우선이에요"},
+      "C-D+":{name:"돌파형 실행가",desc:"감과 추진력으로 빠르게 결과를 내는 사람. 직관적으로 최적의 실행 경로를 찾고, 새로운 상황에서도 주저 없이 돌파해요. 계획보다 행동이 먼저인데, 그 감이 놀라울 정도로 잘 맞아요.",strength:"직관 + 추진력 — 감각적으로 최적의 방법을 찾아 바로 실행해요",caution:"감에만 의존하면 실수가 쌓여요. 중요한 건 한 번 더 확인하세요"},
+      "C+D-":{name:"정밀 운영가",desc:"과업을 정확하고 빠르게 해내면서, 수치를 꼼꼼히 챙겨요. 안정적인 방식으로 실수 없이 완수하는 게 강점이에요. 정해진 기준과 데이터를 바탕으로 흔들림 없는 성과를 내는 사람.",strength:"데이터 기반 안정적 실행 — 실수 없이 꼼꼼하게 해내요",caution:"완벽함을 추구하다 속도가 떨어질 수 있어요. 때로는 '일단 돌려보기'도 필요해요"},
+      "C+D+":{name:"베테랑 실행가",desc:"오랜 경험에서 나오는 감각으로 묵묵히 해내는 사람. 어떤 상황에서도 흔들리지 않고, 경험으로 쌓인 노하우로 최적의 실행 경로를 알아요. '이건 이렇게 하면 돼'가 몸에 밴 사람.",strength:"경험 기반 안정적 실행 — 어떤 상황에서도 흔들림 없이 해내요",caution:"익숙한 방식만 고집하면 더 효율적인 새 방법을 놓칠 수 있어요"}
     },
     keywords:["일정 관리","멀티태스킹","데드라인 준수","실행력","품질 관리"],
     energyUp:["채용 프로세스 운영 (서칭·면접·처우 협의)","HR 운영 실무 최적화·표준화","인사 데이터 정리·정기 리포트 작성","면접 일정 조율·후보자 커뮤니케이션","명확한 목표가 있는 단기 프로젝트"],
@@ -218,10 +218,10 @@ const T = {
     desc:"회의에서 '이거 왜 하는 거예요?'를 자주 묻지만, 고집스럽게 한 방식만 밀어붙이진 않아요. 전략이 잡히면 사람을 설득할 수도, 과업을 직접 정리할 수도 있는 — 도구를 가리지 않는 전략가예요.\n\n조직에 새로운 이슈가 생기면 일단 한 발 물러서서 전체 그림을 봐요. '이게 진짜 문제인가, 아니면 증상인가?' 하는 질문을 던지고, 방향이 잡히면 그때부터 빠르게 움직이는 사람이에요.",
     painPoint:"방향 없이 바쁘기만 한 상황. 매일 업무는 넘치는데 '이게 어디로 가는 거지?' 싶을 때 에너지가 빠져요. 전략적 사고를 할 여유조차 없을 때가 가장 답답해요.",
     flavor:{
-      "C-D-":"변화를 데이터로 기획하는 '분석 전략가'. 새로운 방향을 제시하면서도 숫자로 뒷받침하는 게 자연스러워요.",
-      "C-D+":"직관으로 미래를 읽는 '트렌드 기획가'. 남들보다 한 발 앞서 흐름을 포착하고, 조직이 나아갈 방향을 제시해요.",
-      "C+D-":"데이터 기반으로 안정적 전략을 수립하는 '전략 분석가'. 리스크를 최소화하면서 확실한 근거로 방향을 잡아요.",
-      "C+D+":"경험에서 나오는 통찰로 전략을 짜는 '시니어 기획가'. 오래 쌓인 직관과 안목으로 균형 잡힌 판단을 내려요."
+      "C-D-":{name:"분석 전략가",desc:"왜 하는지를 먼저 따지는 전략가인데, 새로운 방향을 데이터로 뒷받침해요. 변화를 두려워하지 않으면서도 숫자 근거를 챙기니까, '이 방향이 맞다'는 걸 논리적으로 설득할 수 있어요. 사람이든 과업이든 상황에 맞게 유연하게 접근하면서, 근거는 철저히.",strength:"데이터 기반 유연한 전략 — 방향을 잡되 근거로 설득해요",caution:"분석에 빠져 '결정'을 계속 미루는 함정에 빠지지 마세요"},
+      "C-D+":{name:"트렌드 기획가",desc:"큰 그림을 보는 전략가인데, 직관으로 미래를 읽어요. 남들보다 한 발 앞서 흐름을 포착하고, 조직이 나아갈 방향을 제시해요. 사람이든 과업이든 유연하게 접근하면서, 감각적으로 '이거다!' 싶은 방향을 잡는 사람.",strength:"트렌드 포착 + 전략 기획 — 남들보다 먼저 흐름을 읽어요",caution:"직관이 틀릴 때를 대비해야 해요. 핵심 가정은 데이터로 확인하세요"},
+      "C+D-":{name:"전략 분석가",desc:"왜 하는지를 먼저 따지는 전략가인데, 리스크를 최소화하면서 확실한 근거로 방향을 잡아요. 안정적인 기반 위에서 데이터로 검증된 전략을 세우니까, 실패 가능성이 낮아요. 유연하게 접근하되 신중하게 결정하는 사람.",strength:"데이터 기반 안정 전략 — 리스크를 줄이면서 확실한 방향을 잡아요",caution:"신중함이 지나치면 기회를 놓쳐요. 때로는 불완전해도 빠르게 움직이세요"},
+      "C+D+":{name:"시니어 기획가",desc:"큰 그림을 보면서 유연하게 접근하는 전략가인데, 경험에서 나오는 통찰로 전략을 짜요. 오래 쌓인 직관과 안목으로 '이건 이렇게 하면 될 거야'를 정확히 맞춰요. 안정적이면서도 상황에 맞게 판단하는 사람.",strength:"경험 + 직관 기반 전략 — 균형 잡힌 판단으로 방향을 잡아요",caution:"과거 경험에 갇히면 새로운 상황에 대응이 늦어져요"}
     },
     keywords:["전략적 사고","방향 설정","유연한 접근","본질 파악","큰 그림"],
     energyUp:["조직 이슈의 근본 원인 분석","HR 전략 방향 수립","경영진 보고·커뮤니케이션","변화 관리 기획","복잡한 이해관계 정리"],
@@ -243,10 +243,10 @@ const T = {
     desc:"팀 회의에서 말이 없는 사람이 있으면 '○○님은 어떻게 생각해요?'라고 자연스럽게 물어보는 사람. 갈등이 생기면 양쪽 이야기를 다 들어보고 중간에서 다리를 놓아요.\n\n전략이든 실행이든 중요하지만, 이 사람에겐 '그 과정에서 사람들이 어떤 기분인지'가 더 먼저예요. 사람들이 방어적이지 않게, 솔직하게 이야기할 수 있는 공간을 만드는 — 눈에 안 보이지만 팀에서 가장 중요한 역할을 해요.",
     painPoint:"차갑고 사무적인 분위기. 사람을 숫자로만 다루거나, 관계를 무시하고 결과만 밀어붙이는 환경에서 서서히 지쳐요. '이 사람들 감정은 누가 챙겨?'가 계속 머릿속에 맴돌아요.",
     flavor:{
-      "C-D-":"데이터로 관계를 진단하는 '분석적 촉진자'. 조직 서베이 분석도 하고, 사람도 만나고 — 양쪽을 오가며 관계 이슈를 풀어요.",
-      "C-D+":"새로운 시도로 팀 분위기를 바꾸는 '혁신적 촉진자'. 색다른 워크숍, 새로운 소통 채널 등 창의적 방법으로 관계를 만들어요.",
-      "C+D-":"데이터와 안정감으로 관계를 지키는 '체계적 촉진자'. 정기 면담, 만족도 조사 등 구조화된 방식으로 사람을 돌봐요.",
-      "C+D+":"경험에서 나오는 따뜻함으로 사람을 잇는 '마음 촉진자'. 직관과 경험으로 사람의 상태를 정확히 읽고 다가가요."
+      "C-D-":{name:"분석적 촉진자",desc:"사람 사이를 연결하고 분위기를 만드는데, 데이터로 관계 이슈를 진단해요. 서베이 분석도 하고 직접 만나기도 하면서, 새로운 소통 방식을 시도해요. '이 팀 몰입도가 떨어졌는데, 왜 그런지 직접 들어볼게요'가 자연스러운 사람.",strength:"데이터 + 관계 — 숫자로 문제를 찾고 사람으로 풀어요",caution:"분석과 소통 사이에서 에너지가 분산될 수 있어요. 우선순위를 정하세요"},
+      "C-D+":{name:"혁신적 촉진자",desc:"사람 사이를 잇는 촉진자인데, 색다른 방법으로 팀 분위기를 바꿔요. 새로운 워크숍 포맷, 창의적 소통 채널 등 '이렇게 해보면 어떨까?'를 실험해요. 직관적으로 분위기를 읽고, 새로운 접근으로 관계를 만드는 사람.",strength:"창의적 관계 구축 — 색다른 방법으로 팀 분위기를 바꿔요",caution:"새 시도에 너무 몰두하면 기본적인 1:1 케어를 놓칠 수 있어요"},
+      "C+D-":{name:"체계적 촉진자",desc:"사람을 연결하고 분위기를 만드는데, 정기 면담·만족도 조사 같은 구조화된 방식으로 해요. 안정적인 환경에서 데이터를 활용해 관계를 관리하니까, 빠짐없이 사람을 챙길 수 있어요. 체계적으로 사람을 돌보는 사람.",strength:"구조화된 관계 관리 — 빠짐없이 체계적으로 사람을 챙겨요",caution:"체계에 의존하면 '표정으로만 보이는' 미묘한 감정을 놓칠 수 있어요"},
+      "C+D+":{name:"마음 촉진자",desc:"경험에서 나오는 따뜻함으로 사람을 잇는 사람. 직관과 오래된 경험으로 '이 사람 지금 뭔가 있다'를 말하기 전에 알아채요. 안정적인 분위기를 만들면서 사람들이 솔직하게 이야기할 수 있는 공간을 열어주는 사람.",strength:"경험 + 직관 기반 관계 — 말하기 전에 알아채고 다가가요",caution:"직관에만 의존하면 놓치는 사람이 생겨요. 가끔은 체계적 체크도 필요해요"}
     },
     keywords:["관계 구축","분위기 조성","경청","중재","소통 촉진"],
     energyUp:["구성원 1:1 면담·상담","팀빌딩·워크숍 퍼실리테이션","갈등 중재·소통 촉진","신규 입사자 온보딩 지원","현업 리더와의 파트너십 구축"],
@@ -268,10 +268,10 @@ const T = {
     desc:"'너는 어떤 타입이야?'라고 물으면 '상황에 따라 다른데...'라고 답하는 사람. 이게 우유부단한 게 아니라, 진짜로 여러 관점을 동시에 볼 수 있는 거예요.\n\n전략 회의에서는 큰 그림을 보다가, 실행 단계에서는 디테일을 챙기고, 사람 이슈가 생기면 먼저 다가가요. 한 가지에 극단적으로 몰입하지 않는 대신, 팀에서 빠진 역할을 자연스럽게 채워넣는 능력이 있어요.",
     painPoint:"한 가지만 극단적으로 밀어붙여야 하는 상황. '전략만 해' 또는 '실행만 해'라고 역할이 좁혀지면 답답해요. 그리고 '넌 뭘 제일 잘하는 거야?'라는 질문에 딱 하나로 대답하기 어려운 게 가끔 고민이에요.",
     flavor:{
-      "C-D-":"데이터와 변화를 균형있게 다루는 '분석적 멀티플레이어'. 새로운 도전도 좋아하고, 근거도 챙기는 올라운더.",
-      "C-D+":"직관으로 변화를 탐색하는 '모험적 올라운더'. 새로운 시도를 주도하면서 감각적으로 균형을 잡아요.",
-      "C+D-":"데이터로 안정적 균형을 유지하는 '신뢰의 올라운더'. 검증된 방법과 수치를 바탕으로 팀의 중심을 잡아요.",
-      "C+D+":"경험과 직관으로 팀을 지탱하는 '안정적 허브'. 오래된 경험에서 나오는 균형 감각으로 어떤 상황이든 대응해요."
+      "C-D-":{name:"분석적 멀티플레이어",desc:"여러 역할을 유연하게 오가는 올라운더인데, 새로운 도전을 좋아하면서도 데이터로 근거를 챙겨요. 전략도, 실행도, 사람도 상황에 맞게 전환하면서 변화를 주도하고 숫자로 뒷받침하는 사람.",strength:"유연한 역할 전환 + 데이터 기반 변화 — 어디서든 근거 있게 움직여요",caution:"이것저것 다 하면서 어느 하나에도 깊이 파지 못할 수 있어요"},
+      "C-D+":{name:"모험적 올라운더",desc:"여러 역할을 넘나드는 올라운더인데, 직관으로 새로운 시도를 주도해요. 감각적으로 '지금 여기서 내가 뭘 해야 하는지'를 파악하고, 변화를 두려워하지 않으면서 균형을 잡아요. 팀에서 가장 먼저 새로운 걸 시도하는 사람.",strength:"직관 + 모험 — 팀에서 새로운 시도를 주도하면서 균형도 잡아요",caution:"새 시도에 빠지면 기존 역할이 흔들려요. 기본 과업을 먼저 챙기세요"},
+      "C+D-":{name:"신뢰의 올라운더",desc:"여러 역할을 유연하게 오가면서, 검증된 방법과 수치로 팀의 중심을 잡아요. 안정적으로 균형을 유지하면서 데이터를 바탕으로 판단하니까, 팀에서 가장 신뢰할 수 있는 존재. '이 사람이 하면 안심'인 사람.",strength:"안정적 균형 + 데이터 — 팀의 든든한 중심축이에요",caution:"안정에 치우치면 유연성이 줄어요. 때로는 과감한 전환도 필요해요"},
+      "C+D+":{name:"안정적 허브",desc:"여러 역할을 넘나들면서, 경험과 직관으로 팀을 지탱하는 사람. 오래 쌓인 경험에서 나오는 균형 감각으로 어떤 상황이든 대응해요. '일단 이 사람한테 물어보면 길이 보인다'는 팀의 허브.",strength:"경험 기반 균형 — 어떤 상황에서든 안정적으로 팀을 지탱해요",caution:"허브 역할에 익숙해지면 자기만의 전문 영역을 키우기 어려워요"}
     },
     keywords:["유연성","균형 감각","다재다능","상황 적응","역할 전환"],
     energyUp:["여러 팀·부서를 넘나드는 크로스펑셔널 프로젝트","전략부터 실행까지 전체 과정을 아우르는 업무","다양한 이해관계자와 소통·조율","팀에 부족한 역할을 채우는 일","새로운 영역을 빠르게 학습·적용"],
@@ -293,10 +293,10 @@ const T = {
     desc:"'이거 기준이 뭐예요?'가 자연스럽게 나오는 사람. 느낌으로 결정하는 걸 불편해하고, 명확한 기준을 세우고 그에 맞춰 과업을 관리하고 싶어해요.\n\n전략적으로 멀리 보는 것보다는 지금 눈앞의 과업을 정확하게 처리하는 데 집중하고, 그렇다고 속도만 내는 게 아니라 기준과 품질을 같이 챙기는 사람이에요. 보고서 제출 전 한 번 더 숫자를 확인하는 타입.",
     painPoint:"기준 없이 감으로 결정하는 환경. '그냥 느낌이 그래서'가 근거가 되는 회의를 참기 어렵고, 본인이 꼼꼼하게 정리한 기준을 무시당할 때 많이 상해요.",
     flavor:{
-      "C-D-":"데이터와 새 기준으로 과업을 혁신하는 '개선형 관리자'. 기존 방식을 분석하고 더 나은 기준을 만들어요.",
-      "C-D+":"직감으로 과업의 우선순위를 잡는 '민첩한 관리자'. 변화에 빠르게 대응하면서도 과업 품질을 놓치지 않아요.",
-      "C+D-":"데이터로 품질을 지키는 '정밀 관리자'. 안정적이고 꼼꼼하게, 수치로 증명되는 결과물을 만들어요.",
-      "C+D+":"경험 기반으로 과업을 운영하는 '숙련 관리자'. 오랜 실무 경험에서 나오는 감각으로 과업의 흐름을 관리해요."
+      "C-D-":{name:"개선형 관리자",desc:"과업의 기준과 품질을 책임지는데, 기존 방식에 안 머물고 데이터로 더 나은 기준을 만들어요. '이 프로세스의 효율이 왜 낮은지' 분석하고 개선안을 내는 사람. 변화를 추구하면서도 과업 품질은 절대 놓치지 않아요.",strength:"데이터 기반 과업 혁신 — 더 나은 기준을 만들고 개선해요",caution:"기준을 자주 바꾸면 현장이 혼란스러워요. 안정화 기간도 필요해요"},
+      "C-D+":{name:"민첩한 관리자",desc:"과업 기준과 품질을 챙기면서, 직감으로 우선순위를 빠르게 잡아요. 변화에 민첩하게 대응하면서도 과업 품질을 놓치지 않는 사람. '지금 가장 중요한 게 뭔지'를 감각적으로 알아채고 바로 방향을 잡아요.",strength:"민첩한 우선순위 판단 — 빠르게 대응하면서 품질도 잡아요",caution:"직감에 의존한 판단이 틀릴 때가 있어요. 중요한 건 데이터로 확인하세요"},
+      "C+D-":{name:"정밀 관리자",desc:"과업의 기준과 품질을 책임지면서, 안정적이고 꼼꼼하게 수치로 증명되는 결과물을 만들어요. 데이터로 기준을 세우고, 그 기준에 정확히 맞추는 데 집중해요. '숫자가 말해주는 것만 믿어요'가 이 사람의 철학.",strength:"데이터 기반 정밀 관리 — 흔들림 없이 꼼꼼하게 품질을 잡아요",caution:"완벽주의가 심해지면 속도가 느려져요. 때론 '충분히 좋으면 OK'도 필요해요"},
+      "C+D+":{name:"숙련 관리자",desc:"오랜 실무 경험에서 나오는 감각으로 과업의 흐름을 관리해요. 기준과 품질을 챙기면서도, 경험으로 쌓인 노하우가 있으니 효율적으로 돌릴 수 있어요. '이건 이 정도면 충분해'를 정확히 아는 사람.",strength:"경험 기반 효율적 관리 — 과하지도 부족하지도 않은 기준을 잡아요",caution:"경험에만 기대면 새로운 기준이 필요한 상황을 놓칠 수 있어요"}
     },
     keywords:["데이터 기반","기준 설정","품질 관리","과업 집중","객관적 판단"],
     energyUp:["HR 데이터 분석·대시보드 구축","평가 기준 설정·모니터링","인사 제도 운영·관리","채용 프로세스 품질 관리","정기 리포트 작성·분석"],
@@ -318,10 +318,10 @@ const T = {
     desc:"'일단 해보자'가 입에 붙은 사람. 완벽한 계획보다 빠른 실행을 선호하고, 현장에서 직접 부딪히면서 방법을 찾아가는 타입이에요.\n\n사람 관계도 신경 쓰고, 과업 퀄리티도 챙기지만, 둘 다 '직접 하면서' 해결하는 스타일. 회의실에서 논의하는 것보다 현장에서 뛰어다니는 게 더 잘 맞아요.",
     painPoint:"끝없는 회의와 논의. '이거 좀 더 생각해보자'가 반복되면 답답해지고, 결론 없이 흩어지는 미팅 후에 에너지가 바닥나요.",
     flavor:{
-      "C-D-":"데이터를 들고 현장에서 뛰는 '분석적 행동가'. 새로운 방법을 실험하면서도 수치로 효과를 확인해요.",
-      "C-D+":"직감으로 현장을 돌파하는 '개척자'. 새로운 시도를 두려워하지 않고, 감각적으로 최적의 실행 방법을 찾아요.",
-      "C+D-":"데이터 기반으로 안정적으로 실행하는 '운영 전문가'. 검증된 방법으로 꼼꼼하게 현장을 관리해요.",
-      "C+D+":"경험에서 나오는 감각으로 현장을 이끄는 '숙련 실행가'. 몸에 밴 노하우로 어떤 상황에서도 해결책을 찾아요."
+      "C-D-":{name:"분석적 행동가",desc:"현장에서 직접 부딪히며 결과를 만드는데, 데이터를 들고 뛰어요. 새로운 방법을 실험하면서도 수치로 효과를 확인하고, 사람 관계도 과업도 직접 하면서 해결해요. '일단 해보고, 숫자로 검증하자'가 이 사람의 방식.",strength:"현장 실행 + 데이터 검증 — 뛰면서도 숫자를 챙겨요",caution:"분석과 실행을 동시에 하다 에너지가 빨리 소진돼요. 선택과 집중이 필요해요"},
+      "C-D+":{name:"개척자",desc:"현장에서 직접 부딪히면서 결과를 만드는데, 직감으로 돌파해요. 새로운 시도를 두려워하지 않고, 감각적으로 최적의 실행 방법을 찾아요. '안 해본 건 해봐야 알지'가 이 사람의 철학. 팀에서 가장 먼저 현장에 뛰어드는 사람.",strength:"직관 + 개척 정신 — 새로운 현장에서도 주저 없이 돌파해요",caution:"무모함과 용기의 경계를 의식하세요. 리스크 체크 한 번은 필요해요"},
+      "C+D-":{name:"운영 전문가",desc:"현장에서 직접 해결하는 실행가인데, 검증된 방법으로 안정적이고 꼼꼼하게 관리해요. 데이터를 바탕으로 현장을 운영하니까 실수가 적고, 일관된 품질을 유지해요. '정해진 방식대로 정확하게'가 강점인 사람.",strength:"안정적 현장 운영 — 검증된 방법으로 꼼꼼하게 관리해요",caution:"안정적 운영에 익숙해지면 급한 상황에서 유연한 대응이 어려울 수 있어요"},
+      "C+D+":{name:"숙련 실행가",desc:"경험에서 나오는 감각으로 현장을 이끄는 사람. 몸에 밴 노하우로 어떤 상황에서도 해결책을 찾아요. 사람도 과업도 직접 하면서 해결하는데, 안정적인 경험이 뒷받침되니까 흔들림이 없어요.",strength:"경험 기반 현장 대응 — 어떤 상황에서도 해결책을 찾아요",caution:"'내가 다 해야 해'에 빠지면 위임이 안 돼요. 후배에게 경험을 나눠주세요"}
     },
     keywords:["실행력","현장 중심","빠른 대응","직접 부딪힘","행동 지향"],
     energyUp:["현장 이슈 즉시 대응·해결","신규 프로젝트 빠른 착수","채용·온보딩 실무 운영","현업 리더와 직접 협업","단기 목표 달성 프로젝트"],
@@ -932,20 +932,60 @@ function renderResult(){
   // Flavor analysis (CS/DI axes)
   const fk=getFlavorKey(state.strengthScores.CS||0,state.strengthScores.DI||0);
   const fl=FLAVOR_LABELS[fk];
-  const flavorText=t.flavor?t.flavor[fk]:null;
+  const flavorObj=t.flavor?t.flavor[fk]:null;
+  const flavorText=flavorObj?(typeof flavorObj==='object'?flavorObj.desc:flavorObj):null;
 
   app().innerHTML=`
   <div class="fade-in">
-    <!-- 1. Header -->
+    <!-- 1. Header — 36 프로필 통합 아이덴티티 -->
     <div style="text-align:center;padding:32px 0 20px">
-      <p style="font-size:14px;color:#9CA3AF;margin-bottom:8px;font-weight:500">당신의 HRBP 유형은</p>
+      <p style="font-size:14px;color:#9CA3AF;margin-bottom:8px;font-weight:500">당신의 HRBP 프로필은</p>
       <div style="font-size:52px;margin-bottom:8px">${t.emoji}</div>
-      <h1 style="font-size:30px;font-weight:800;color:${t.color};margin-bottom:6px;letter-spacing:-.5px">${t.name}</h1>
+      ${flavorObj&&typeof flavorObj==='object'?`
+        <h1 style="font-size:28px;font-weight:800;color:${t.color};margin-bottom:4px;letter-spacing:-.5px">${fl?fl.icon+' ':''}<span>${flavorObj.name}</span></h1>
+        <p style="font-size:14px;color:#6B7280;font-weight:500;margin-bottom:2px">${t.name} × ${fl?fl.name:fk}</p>
+      `:`
+        <h1 style="font-size:30px;font-weight:800;color:${t.color};margin-bottom:6px;letter-spacing:-.5px">${t.name}</h1>
+      `}
       <p style="font-size:15px;color:#6B7280;font-weight:500">${t.subtitle}</p>
     </div>
 
-    <!-- 2. Type Description (핵심 욕구 + 행동 스냅샷 + 못 참는 상황 + 키워드) -->
+    <!-- 2. 통합 프로필 설명 (4축 융합) -->
+    ${flavorObj&&typeof flavorObj==='object'?`
+    <div class="card" style="border:2px solid ${t.colorLight}">
+      <div class="sec-title">🎯 나의 프로필</div>
+      <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:14px">${flavorObj.desc}</p>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <div style="flex:1;padding:12px;background:#F0FDF4;border-radius:10px;border:1px solid #BBF7D0">
+          <p style="font-size:12px;font-weight:700;color:#059669;margin-bottom:4px">💪 강점</p>
+          <p style="font-size:13px;color:#374151;line-height:1.6">${flavorObj.strength}</p>
+        </div>
+        <div style="flex:1;padding:12px;background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A">
+          <p style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:4px">⚠️ 주의</p>
+          <p style="font-size:13px;color:#374151;line-height:1.6">${flavorObj.caution}</p>
+        </div>
+      </div>
+      ${(()=>{
+        const axes=[{label:'변화 ↔ 안정',val:state.strengthScores.CS||0,left:'🔥 변화',right:'안정 🛡️',colorL:'#8B5CF6',colorR:'#059669'},
+           {label:'데이터 ↔ 직관',val:state.strengthScores.DI||0,left:'📊 데이터',right:'직관 💡',colorL:'#0984E3',colorR:'#F59E0B'}];
+        return '<div style="display:flex;gap:10px">'+axes.map(ax=>{
+          const pct=Math.min(95,Math.max(5,50+(ax.val/6)*50));
+          const isLeft=ax.val<=0;
+          const dotColor=isLeft?ax.colorL:ax.colorR;
+          return '<div style="flex:1;padding:14px;background:#F9FAFB;border-radius:12px">'+
+            '<div style="font-size:11px;color:#9CA3AF;font-weight:600;margin-bottom:6px;text-align:center">'+ax.label+'</div>'+
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
+            '<span style="font-size:10px;font-weight:'+(isLeft?'700':'400')+';color:'+(isLeft?ax.colorL:'#9CA3AF')+'">'+ax.left+'</span>'+
+            '<span style="font-size:10px;font-weight:'+(!isLeft?'700':'400')+';color:'+(!isLeft?ax.colorR:'#9CA3AF')+'">'+ax.right+'</span></div>'+
+            '<div style="position:relative;height:8px;background:#E5E7EB;border-radius:4px">'+
+            '<div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:#D1D5DB"></div>'+
+            '<div style="position:absolute;top:-2px;left:'+pct+'%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:'+dotColor+';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>'+
+            '</div></div>';}).join('')+'</div>';
+      })()}
+    </div>`:''}
+
     <div class="card">
+      <div class="sec-title">${t.emoji} ${t.name}</div>
       <div style="background:${t.colorBg};border-radius:12px;padding:14px 16px;margin-bottom:16px;border-left:3px solid ${t.color}">
         <p style="font-size:13px;font-weight:700;color:${t.color};margin-bottom:4px">핵심 욕구</p>
         <p style="font-size:15px;color:#374151;line-height:1.7">${t.coreNeed}</p>
@@ -987,41 +1027,7 @@ function renderResult(){
       </div>
     </div>
 
-    <!-- 5. Flavor (나만의 플레이버 + CS/DI 성향) -->
-    ${fl?`
-    <div class="card" style="border:2px solid ${t.colorLight}">
-      <div class="sec-title">🎨 나만의 플레이버</div>
-      <div style="background:${t.colorBg};border-radius:14px;padding:18px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <span style="font-size:28px">${fl.icon}</span>
-          <div>
-            <div style="font-size:17px;font-weight:800;color:${t.color}">${fl.name}</div>
-            <div style="font-size:12px;color:#9CA3AF">${fl.desc}</div>
-          </div>
-        </div>
-        ${flavorText?`<p style="font-size:14px;color:#374151;line-height:1.7">${flavorText}</p>`:''}
-      </div>
-      <div style="display:flex;gap:10px">
-        ${[{label:'변화 ↔ 안정',val:state.strengthScores.CS||0,left:'🔥 변화',right:'안정 🛡️',colorL:'#8B5CF6',colorR:'#059669'},
-           {label:'데이터 ↔ 직관',val:state.strengthScores.DI||0,left:'📊 데이터',right:'직관 💡',colorL:'#0984E3',colorR:'#F59E0B'}
-        ].map(ax=>{
-          const pct=Math.min(95,Math.max(5,50+(ax.val/6)*50));
-          const isLeft=ax.val<=0;
-          const dotColor=isLeft?ax.colorL:ax.colorR;
-          return`
-        <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:12px">
-          <div style="font-size:11px;color:#9CA3AF;font-weight:600;margin-bottom:6px;text-align:center">${ax.label}</div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:10px;font-weight:${isLeft?'700':'400'};color:${isLeft?ax.colorL:'#9CA3AF'}">${ax.left}</span>
-            <span style="font-size:10px;font-weight:${!isLeft?'700':'400'};color:${!isLeft?ax.colorR:'#9CA3AF'}">${ax.right}</span>
-          </div>
-          <div style="position:relative;height:8px;background:#E5E7EB;border-radius:4px">
-            <div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:#D1D5DB"></div>
-            <div style="position:absolute;top:-2px;left:${pct}%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
-          </div>
-        </div>`;}).join('')}
-      </div>
-    </div>`:``}
+    <!-- (플레이버 섹션은 통합 프로필 카드에 병합됨) -->
 
     <!-- 5b. Phase-based Task Fit -->
     <div class="card">
@@ -1360,7 +1366,7 @@ function renderTeam(){
             <span style="font-size:20px">${t.emoji}</span>
             <div style="flex:1">
               <div style="font-size:14px;font-weight:700;color:#1A1A2E">${m.name} ${isMe?`<span style="font-size:11px;color:${t.color};font-weight:600">(나)</span>`:""}</div>
-              <div style="font-size:12px;color:#9CA3AF">${t.name}${(m.cs!==undefined&&m.cs!==null)?` · ${FLAVOR_LABELS[getFlavorKey(m.cs,m.di||0)]?.icon||''} ${FLAVOR_LABELS[getFlavorKey(m.cs,m.di||0)]?.name||''}`:''}</div>
+              <div style="font-size:12px;color:#9CA3AF">${(()=>{if(m.cs===undefined||m.cs===null)return t.name;const _fk=getFlavorKey(m.cs,m.di||0);const _fl=FLAVOR_LABELS[_fk];const _fo=t.flavor?t.flavor[_fk]:null;const _fn=_fo&&typeof _fo==='object'?_fo.name:(_fl?_fl.name:'');return _fn?(_fl?_fl.icon+' ':'')+_fn+' · '+t.name:t.name;})()}</div>
             </div>
             ${state.mode!=="team"&&i>0?`<button onclick="event.stopPropagation();removeMember(${i})" style="background:none;border:none;cursor:pointer;font-size:16px;color:#D1D5DB;padding:4px">✕</button>`:""}
             <span style="font-size:12px;color:#9CA3AF;transition:transform .15s;${isOpen?'transform:rotate(90deg)':''}">${isOpen?'▾':'▸'}</span>
@@ -1371,15 +1377,20 @@ function renderTeam(){
             ${(m.cs!==undefined&&m.cs!==null&&t.flavor)?(()=>{
               const fk=getFlavorKey(m.cs,m.di||0);
               const fl=FLAVOR_LABELS[fk];
-              const flText=t.flavor[fk]||'';
+              const flObj=t.flavor[fk];
+              const flText=flObj?(typeof flObj==='object'?flObj.desc:flObj):'';
+              const flName=flObj&&typeof flObj==='object'?flObj.name:(fl?fl.name:'');
+              const flStrength=flObj&&typeof flObj==='object'?flObj.strength:'';
+              const flCaution=flObj&&typeof flObj==='object'?flObj.caution:'';
               return fl?`
             <div style="padding:12px;background:linear-gradient(135deg,${t.colorBg},#fff);border-radius:12px;border:1px solid ${t.colorLight};margin-bottom:12px">
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
                 <span style="font-size:16px">${fl.icon}</span>
-                <span style="font-size:13px;font-weight:700;color:${t.color}">${fl.name}</span>
-                <span style="font-size:11px;color:#9CA3AF">${fk}</span>
+                <span style="font-size:13px;font-weight:700;color:${t.color}">${flName}</span>
+                <span style="font-size:11px;color:#9CA3AF">${t.name}</span>
               </div>
-              ${flText?`<p style="font-size:12px;color:#374151;line-height:1.6">${flText}</p>`:''}
+              ${flText?`<p style="font-size:12px;color:#374151;line-height:1.6;margin-bottom:6px">${flText}</p>`:''}
+              ${flStrength?`<div style="display:flex;gap:6px">${flStrength?`<span style="font-size:11px;padding:3px 8px;background:#F0FDF4;color:#166534;border-radius:6px;border:1px solid #BBF7D0">💪 ${flStrength}</span>`:''}</div>`:''}
               <div style="display:flex;gap:8px;margin-top:8px">
                 ${[{val:m.cs,left:'변화',right:'안정',cL:'#8B5CF6',cR:'#059669'},
                    {val:m.di||0,left:'데이터',right:'직관',cL:'#0984E3',cR:'#F59E0B'}
