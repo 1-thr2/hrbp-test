@@ -1012,22 +1012,24 @@ function renderResult(){
         ${flavorText?`<p style="font-size:14px;color:#374151;line-height:1.7">${flavorText}</p>`:''}
       </div>
       <div style="display:flex;gap:10px">
-        <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:12px;text-align:center">
-          <div style="font-size:11px;color:#9CA3AF;font-weight:600;margin-bottom:4px">변화 ↔ 안정</div>
-          <div style="font-size:20px;font-weight:800;color:${t.color}">${(state.strengthScores.CS||0)<=0?'변화 추구 🔥':'안정 선호 🛡️'}</div>
-          <div style="margin-top:6px;height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${Math.min(100,Math.max(5,50+((state.strengthScores.CS||0)/6)*50))}%;background:${t.color};border-radius:3px"></div>
+        ${[{label:'변화 ↔ 안정',val:state.strengthScores.CS||0,left:'🔥 변화',right:'안정 🛡️',colorL:'#8B5CF6',colorR:'#059669'},
+           {label:'데이터 ↔ 직관',val:state.strengthScores.DI||0,left:'📊 데이터',right:'직관 💡',colorL:'#0984E3',colorR:'#F59E0B'}
+        ].map(ax=>{
+          const pct=Math.min(95,Math.max(5,50+(ax.val/6)*50));
+          const isLeft=ax.val<=0;
+          const dotColor=isLeft?ax.colorL:ax.colorR;
+          return`
+        <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:12px">
+          <div style="font-size:11px;color:#9CA3AF;font-weight:600;margin-bottom:6px;text-align:center">${ax.label}</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:10px;font-weight:${isLeft?'700':'400'};color:${isLeft?ax.colorL:'#9CA3AF'}">${ax.left}</span>
+            <span style="font-size:10px;font-weight:${!isLeft?'700':'400'};color:${!isLeft?ax.colorR:'#9CA3AF'}">${ax.right}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-top:2px"><span style="font-size:9px;color:#9CA3AF">변화</span><span style="font-size:9px;color:#9CA3AF">안정</span></div>
-        </div>
-        <div style="flex:1;padding:14px;background:#F9FAFB;border-radius:12px;text-align:center">
-          <div style="font-size:11px;color:#9CA3AF;font-weight:600;margin-bottom:4px">데이터 ↔ 직관</div>
-          <div style="font-size:20px;font-weight:800;color:${t.color}">${(state.strengthScores.DI||0)<=0?'데이터형 📊':'직관형 💡'}</div>
-          <div style="margin-top:6px;height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${Math.min(100,Math.max(5,50+((state.strengthScores.DI||0)/6)*50))}%;background:${t.color};border-radius:3px"></div>
+          <div style="position:relative;height:8px;background:#E5E7EB;border-radius:4px">
+            <div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:#D1D5DB"></div>
+            <div style="position:absolute;top:-2px;left:${pct}%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:${dotColor};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-top:2px"><span style="font-size:9px;color:#9CA3AF">데이터</span><span style="font-size:9px;color:#9CA3AF">직관</span></div>
-        </div>
+        </div>`;}).join('')}
       </div>
     </div>`:``}
 
@@ -1357,14 +1359,18 @@ function renderTeam(){
               </div>
               ${flText?`<p style="font-size:12px;color:#374151;line-height:1.6">${flText}</p>`:''}
               <div style="display:flex;gap:8px;margin-top:8px">
-                <div style="flex:1">
-                  <div style="display:flex;justify-content:space-between;font-size:10px;color:#9CA3AF;margin-bottom:2px"><span>변화</span><span>안정</span></div>
-                  <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden"><div style="height:100%;width:${50+Math.round(m.cs/6*50)}%;background:linear-gradient(90deg,#8B5CF6,#6C5CE7);border-radius:3px"></div></div>
-                </div>
-                <div style="flex:1">
-                  <div style="display:flex;justify-content:space-between;font-size:10px;color:#9CA3AF;margin-bottom:2px"><span>데이터</span><span>직관</span></div>
-                  <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden"><div style="height:100%;width:${50+Math.round((m.di||0)/6*50)}%;background:linear-gradient(90deg,#0984E3,#00B894);border-radius:3px"></div></div>
-                </div>
+                ${[{val:m.cs,left:'변화',right:'안정',cL:'#8B5CF6',cR:'#059669'},
+                   {val:m.di||0,left:'데이터',right:'직관',cL:'#0984E3',cR:'#F59E0B'}
+                ].map(ax=>{
+                  const pct=Math.min(95,Math.max(5,50+(ax.val/6)*50));
+                  const isL=ax.val<=0;
+                  return`<div style="flex:1">
+                  <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span style="color:${isL?ax.cL:'#9CA3AF'};font-weight:${isL?'700':'400'}">${ax.left}</span><span style="color:${!isL?ax.cR:'#9CA3AF'};font-weight:${!isL?'700':'400'}">${ax.right}</span></div>
+                  <div style="position:relative;height:6px;background:#E5E7EB;border-radius:3px">
+                    <div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:#D1D5DB"></div>
+                    <div style="position:absolute;top:-3px;left:${pct}%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:${isL?ax.cL:ax.cR};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
+                  </div>
+                </div>`;}).join('')}
               </div>
             </div>`:''})():''}
             <div style="padding:12px;background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A;margin-bottom:12px">
