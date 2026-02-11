@@ -499,9 +499,39 @@ function analyzeTeamComposition(members){
     }
   }
 
-  // ── TIP 4: 아웃라이어 or 클러스터 패턴 ──
-  if(total>=3&&tips.length<4){
-    // Find outlier
+  // ── TIP 4: CS/DI 업무 스타일 분석 ──
+  const hasCS=members.some(m=>m.cs!==undefined&&m.cs!==null);
+  if(hasCS&&tips.length<5){
+    const changeM=members.filter(m=>(m.cs||0)<0);
+    const stableM=members.filter(m=>(m.cs||0)>0);
+    const dataM=members.filter(m=>(m.di||0)<0);
+    const intuM=members.filter(m=>(m.di||0)>0);
+
+    // CS axis: 변화 vs 안정
+    if(changeM.length>0&&stableM.length>0){
+      if(changeM.length>stableM.length){
+        tips.push({icon:"🔄",text:`변화 추구형(${nl(changeM)})이 안정 추구형(${nl(stableM)})보다 많아요. 새로운 시도에 열려있지만, ${stableM[0].name}이 '리스크 체크' 역할을 맡으면 균형이 잡혀요. 변화를 밀 때 '기존에 잘 되고 있는 건 뭔지'도 꼭 짚어주세요.`});
+      }else if(stableM.length>changeM.length){
+        tips.push({icon:"🛡️",text:`안정 추구형(${nl(stableM)})이 변화 추구형(${nl(changeM)})보다 많아요. 체계적이지만 변화에 느릴 수 있어요. ${changeM[0].name}이 새로운 시도를 제안할 때 '작게 실험해보자'로 접근하면 수용도가 올라가요.`});
+      }
+    }else if(changeM.length>0&&stableM.length===0){
+      tips.push({icon:"🔄",text:`팀 전체가 변화 추구 성향(${nl(changeM)})이에요. 새로운 시도엔 빠르지만, 기존 체계가 흔들릴 수 있어요. '바꾸기 전에 지킬 것 1가지' 규칙을 만들어보세요.`});
+    }else if(stableM.length>0&&changeM.length===0){
+      tips.push({icon:"🛡️",text:`팀 전체가 안정 추구 성향(${nl(stableM)})이에요. 안정적이지만 변화가 필요한 시점에 느릴 수 있어요. 분기 1회 '새로운 시도 1가지' 과제를 정해보세요.`});
+    }
+
+    // DI axis: 데이터 vs 직관
+    if(dataM.length>0&&intuM.length>0&&tips.length<5){
+      tips.push({icon:"⚖️",text:`데이터형(${nl(dataM)})과 직관형(${nl(intuM)})이 섞여 있어요. 의사결정 시 '근거'의 의미가 달라서 부딪힐 수 있어요. ${dataM[0].name}이 숫자를 정리하고 ${intuM[0].name}이 현장 맥락을 붙이면 설득력이 두 배가 돼요.`});
+    }else if(dataM.length>0&&intuM.length===0&&tips.length<5){
+      tips.push({icon:"📈",text:`팀 전체가 데이터 중심(${nl(dataM)})이에요. 근거 기반 의사결정은 강하지만, 현장 감각이나 구성원 감정 같은 비정형 신호를 놓칠 수 있어요. 정기적으로 '데이터에 안 잡히는 이슈'를 점검하세요.`});
+    }else if(intuM.length>0&&dataM.length===0&&tips.length<5){
+      tips.push({icon:"💡",text:`팀 전체가 직관 중심(${nl(intuM)})이에요. 현장 감각은 뛰어나지만, 경영진 설득이나 효과 검증에서 약할 수 있어요. 주요 의사결정엔 '숫자 한 줄'이라도 근거를 붙이는 습관을 들이세요.`});
+    }
+  }
+
+  // ── TIP 5: 아웃라이어 or 클러스터 패턴 ──
+  if(total>=3&&tips.length<5){
     let maxDist=0,outlier=null;
     members.forEach(m=>{
       const alone=members.filter(m2=>m2.typeKey===m.typeKey).length===1;
@@ -513,7 +543,6 @@ function analyzeTeamComposition(members){
       const ot=T[outlier.typeKey];
       tips.push({icon:"🔍",text:`${outlier.name}(${ot.name})은 팀 평균에서 가장 먼 위치예요. 이 관점이 무시되면 팀의 맹점이 돼요. 의사결정 전 '${outlier.name}, 다른 시각 없어?' 한마디가 큰 차이를 만들어요.`});
     }else{
-      // Cluster detection — 같은 유형이 여러 명인 경우
       const dupes=Object.entries(zoneMap).filter(([z,ms])=>ms.length>=2).sort((a,b)=>b[1].length-a[1].length);
       if(dupes.length>0){
         const [zone,ms]=dupes[0];
@@ -527,14 +556,13 @@ function analyzeTeamComposition(members){
     if(balM.length===total)tips.push({icon:"🤝",text:"모두 비슷한 중앙 영역에 있어요. 소통은 편하지만 강한 전문성이 필요한 국면에서 약할 수 있어요. 각자 한 가지 전문 역할을 정해두면 좋아요."});
     else tips.push({icon:"✨",text:"의견이 다를 때 '오늘의 결정 기준'을 미리 합의해두면 갈등을 예방할 수 있어요."});
   }
-  return tips.slice(0,4);
+  return tips.slice(0,5);
 }
 
 function generateConflictDetail(a,b){
   const tA=T[a.typeKey],tB=T[b.typeKey];
   const seDiff=a.se-b.se,ptDiff=a.pt-b.pt;
   const seGap=Math.abs(seDiff),ptGap=Math.abs(ptDiff);
-  // Who is more strategic/execution/people/task
   const s=seDiff<=0?{m:a,t:tA}:{m:b,t:tB};
   const e=seDiff<=0?{m:b,t:tB}:{m:a,t:tA};
   const p=ptDiff<=0?{m:a,t:tA}:{m:b,t:tB};
@@ -549,6 +577,24 @@ function generateConflictDetail(a,b){
   }else{
     reason=`${p.m.name}(${p.t.name})은 '사람들이 어떻게 느낄지'가 먼저 신경 쓰이는데, ${k.m.name}(${k.t.name})은 '기준에 맞는지, 결과가 나오는지'를 먼저 봐요. ${p.m.name} 입장에선 '사람 마음은 안 보여?', ${k.m.name} 입장에선 '감정에 끌려다니면 일이 안 돼'가 될 수 있어요.`;
     tip=`${p.m.name}이 구성원 반응을 체크하고 ${k.m.name}이 기준과 품질을 챙기는 역할을 나누세요. ${p.m.name}의 피드백은 '반대'가 아니라 '실행 경로 보완'이라는 걸 ${k.m.name}이 이해하면 최고의 조합이 돼요.`;
+  }
+  // CS/DI 업무 스타일 차이 추가 코멘트
+  const hasStyle=a.cs!==undefined&&b.cs!==undefined;
+  if(hasStyle){
+    const csGap=Math.abs((a.cs||0)-(b.cs||0));
+    const diGap=Math.abs((a.di||0)-(b.di||0));
+    const cA=(a.cs||0)<0?a:b, cB=(a.cs||0)<0?b:a; // cA=변화형, cB=안정형
+    const dA=(a.di||0)<0?a:b, dB=(a.di||0)<0?b:a; // dA=데이터형, dB=직관형
+    if(csGap>=4&&diGap>=4){
+      reason+=` 게다가 업무 스타일도 달라요 — ${cA.name}은 변화+${(cA===dA)?'데이터':'직관'}형이고 ${cB.name}은 안정+${(cB===dA)?'데이터':'직관'}형이라, 접근 방식 자체가 다를 수 있어요.`;
+      tip+=` 업무 스타일 차이도 인식하세요: 새로운 시도를 할 때 ${cA.name}의 추진력과 ${cB.name}의 안정성을 조합하세요.`;
+    }else if(csGap>=4){
+      reason+=` 업무 스타일도 차이가 있어요 — ${cA.name}은 변화를 추구하고 ${cB.name}은 안정을 추구해서, 새로운 시도에 대한 온도 차이가 있을 수 있어요.`;
+      tip+=` 변화가 필요한 안건은 ${cA.name}이, 안정적 운영이 필요한 안건은 ${cB.name}이 리드하면 자연스러워요.`;
+    }else if(diGap>=4){
+      reason+=` 의사결정 방식도 달라요 — ${dA.name}은 데이터를 먼저 보고, ${dB.name}은 직관과 현장 경험을 먼저 봐요.`;
+      tip+=` 제안할 때 ${dA.name}에겐 숫자 근거를, ${dB.name}에겐 현장 사례를 함께 준비하면 둘 다 납득해요.`;
+    }
   }
   return{reason,tip};
 }
