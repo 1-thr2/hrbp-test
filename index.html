@@ -1036,10 +1036,11 @@ function renderResult(){
       <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-top:10px">팀 조합에서 상세 1:1 소통 가이드를 확인하세요</p>
     </div>
 
-    <!-- Share my result -->
+    <!-- Share buttons -->
     ${!state.sharedResult?`
-    <div style="text-align:center;margin-bottom:16px">
-      <button class="btn btn-secondary" onclick="shareMyResult()" id="shareResultBtn" style="font-size:14px">🔗 내 결과 공유하기</button>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-secondary" onclick="shareMyResult()" id="shareResultBtn" style="font-size:14px;flex:1">🔗 내 결과 공유</button>
+      <button class="btn btn-secondary" onclick="shareTestLink()" id="shareTestBtn" style="font-size:14px;flex:1">📨 테스트 공유</button>
     </div>`:''}
 
     <!-- Team CTA -->
@@ -1533,7 +1534,13 @@ function shareMyResult(){
   const tk=typeFromScores(state.scores.SE,state.scores.PT);
   const t=T[tk];
   const msg=`🧭 나의 HRBP 유형은 "${t.emoji} ${t.name}"!\n${t.subtitle}\n\n너도 궁금하면 해봐! 22문항 · 약 5분\n👉 ${link}`;
-  copyToClipboard(msg,'shareResultBtn','🔗 내 결과 공유하기');
+  copyToClipboard(msg,'shareResultBtn','🔗 내 결과 공유');
+}
+
+function shareTestLink(){
+  const link=location.origin+location.pathname;
+  const msg=`🧭 나는 어떤 HRBP일까?\n\n22문항으로 알아보는 나의 HRBP 업무 스타일 진단\n9가지 유형 × 4가지 플레이버 = 36가지 프로필\n약 5분이면 끝나요!\n\n👉 ${link}`;
+  copyToClipboard(msg,'shareTestBtn','📨 테스트 공유');
 }
 
 function startTeamTest(){
